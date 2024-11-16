@@ -1,7 +1,7 @@
 package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
-import com.example.battleshipfpoe.Model.List.ArrayList;
+import com.example.battleshipfpoe.View.Boat;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.layout.AnchorPane;
@@ -20,19 +20,37 @@ public class MenuController implements Initializable {
 
     private BoardHandler boardHandler;
 
+    private Ship selectedShip; // Barco actualmente seleccionado
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Define board size and plane dimensions as per your requirements
-        double planeWidth = 600;  // Adjust width as needed
-        double planeHeight = 600; // Adjust height as needed
-        int gridSize = 10;        // Define the size of each tile, e.g., 40px by 40px
+        // Inicializar el tablero
+        initializeBoard();
 
-        // Initialize the BoardHandler with the dimensions and board size
+        // Agregar barcos al BoatPane
+        addBoatToPane(new Boat(), 20, 20); // Primer barco
+        addBoatToPane(new Boat(), 20, 100); // Segundo barco
+    }
+
+    private void initializeBoard() {
+        double planeWidth = 600;  // Ajusta según sea necesario
+        double planeHeight = 600;
+        int gridSize = 10;        // Tamaño del tablero (10x10)
+
+        // Inicializar el tablero
         boardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, BoardPane);
 
-        // Update the grid to display the board
+        // Dibujar el tablero
         boardHandler.updateGrid();
-
         boardHandler.printBoard();
     }
+
+    private void addBoatToPane(Boat boat, double x, double y) {
+        boat.getBoat().setLayoutX(x);
+        boat.getBoat().setLayoutY(y);
+
+        // Agregar el barco al panel de preparación
+        BoatPane.getChildren().add(boat.getBoat());
+    }
 }
+
