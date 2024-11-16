@@ -44,12 +44,28 @@ public class Boat {
         boat.setRotate(isHorizontal ? 0 : 90);
     }
 
-    // Configurar eventos de interacción
     private void setupInteractions() {
-        // Arrastre del barco
+        // Para rastrear las posiciones iniciales del barco y del ratón
+        boat.setOnMousePressed(event -> {
+            boat.setUserData(new double[]{event.getSceneX() - boat.getLayoutX(), event.getSceneY() - boat.getLayoutY()});
+            boat.requestFocus(); // Obtener el foco cuando se haga clic en el barco
+        });
+
         boat.setOnMouseDragged(event -> {
-            boat.setLayoutX(event.getSceneX() - 50); // Ajustar posición X
-            boat.setLayoutY(event.getSceneY() - 25); // Ajustar posición Y
+            double[] offsets = (double[]) boat.getUserData();
+            double newX = event.getSceneX() - offsets[0];
+            double newY = event.getSceneY() - offsets[1];
+
+            // Restringir el movimiento dentro del contenedor
+            double parentWidth = boat.getParent().getLayoutBounds().getWidth();
+            double parentHeight = boat.getParent().getLayoutBounds().getHeight();
+
+            if (newX >= 0 && newX <= parentWidth - boat.getLayoutBounds().getWidth()) {
+                boat.setLayoutX(newX);
+            }
+            if (newY >= 0 && newY <= parentHeight - boat.getLayoutBounds().getHeight()) {
+                boat.setLayoutY(newY);
+            }
         });
 
         // Rotación con tecla R
