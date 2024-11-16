@@ -26,6 +26,7 @@ public class MenuController implements Initializable {
         // Inicializar el tablero
         initializeBoard();
 
+
         // Agregar barcos al BoatPane
         addBoatToPane(new Boat(), 20, 20); // Primer barco
         addBoatToPane(new Boat(), 20, 100); // Segundo barco
@@ -48,6 +49,9 @@ public class MenuController implements Initializable {
         boat.getBoat().setLayoutX(x);
         boat.getBoat().setLayoutY(y);
 
+        // Configurar eventos para arrastrar y soltar entre paneles
+        setupDragAndDrop(boat);
+
         // Agregar el barco al panel de preparación
         BoatPane.getChildren().add(boat.getBoat());
     }
@@ -56,26 +60,43 @@ public class MenuController implements Initializable {
         boat.getBoat().setOnMouseReleased(event -> {
             // Verificar si el barco está sobre el tablero
             if (isOverBoardPane(event)) {
-                // Remover del panel actual y agregar al tablero
-                BoatPane.getChildren().remove(boat.getBoat());
-                BoardPane.getChildren().add(boat.getBoat());
-
-                // Ajustar las coordenadas al tablero
-                boat.getBoat().setLayoutX(event.getSceneX() - BoardPane.getLayoutX());
-                boat.getBoat().setLayoutY(event.getSceneY() - BoardPane.getLayoutY());
+                // Transferir el barco al tablero
+                transferBoatToBoard(boat, event);
             }
         });
     }
 
     private boolean isOverBoardPane(MouseEvent event) {
-        // Calcular los límites del BoardPane
-        double boardX = BoardPane.getLayoutX();
-        double boardY = BoardPane.getLayoutY();
+        // Obtener las coordenadas absolutas del tablero
+        double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
+        double boardY = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinY();
         double boardWidth = BoardPane.getWidth();
         double boardHeight = BoardPane.getHeight();
 
-        // Verificar si el mouse está dentro de los límites
+        // Verificar si el mouse está dentro de los límites del tablero
         return event.getSceneX() > boardX && event.getSceneX() < boardX + boardWidth &&
                 event.getSceneY() > boardY && event.getSceneY() < boardY + boardHeight;
+    }
+
+    private void transferBoatToBoard(Boat boat, MouseEvent event) {
+        // Remover del contenedor inicial
+        BoatPane.getChildren().remove(boat.getBoat());
+
+        // Agregar al tablero
+        BoardPane.getChildren().add(boat.getBoat());
+
+        // Ajustar las coordenadas del barco al tablero
+        double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
+        double boardY = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinY();
+        double newX = event.getSceneX() - boardX;
+        double newY = event.getSceneY() - boardY;
+
+        // Asegurarse de que las coordenadas estén dentro de los límites del tablero
+        if (newX >= 0 && newX <= BoardPane.getWidth() - boat.getBoat().getLayoutBounds().getWidth()) {
+            boat.getBoat().setLayoutX(newX);
+        }
+        if (newY >= 0 && newY <= BoardPane.getHeight() - boat.getBoat().getLayoutBounds().getHeight()) {
+            boat.getBoat().setLayoutY(newY);
+        }
     }
 }

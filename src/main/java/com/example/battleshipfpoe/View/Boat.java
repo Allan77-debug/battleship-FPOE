@@ -45,9 +45,11 @@ public class Boat {
     }
 
     private void setupInteractions() {
-        // Para rastrear las posiciones iniciales del barco y del ratón
         boat.setOnMousePressed(event -> {
-            boat.setUserData(new double[]{event.getSceneX() - boat.getLayoutX(), event.getSceneY() - boat.getLayoutY()});
+            boat.setUserData(new double[]{
+                    event.getSceneX() - boat.getLayoutX(),
+                    event.getSceneY() - boat.getLayoutY()
+            });
             boat.requestFocus(); // Obtener el foco cuando se haga clic en el barco
         });
 
@@ -56,22 +58,16 @@ public class Boat {
             double newX = event.getSceneX() - offsets[0];
             double newY = event.getSceneY() - offsets[1];
 
-            // Restringir el movimiento dentro del contenedor
-            double parentWidth = boat.getParent().getLayoutBounds().getWidth();
-            double parentHeight = boat.getParent().getLayoutBounds().getHeight();
-
-            if (newX >= 0 && newX <= parentWidth - boat.getLayoutBounds().getWidth()) {
-                boat.setLayoutX(newX);
-            }
-            if (newY >= 0 && newY <= parentHeight - boat.getLayoutBounds().getHeight()) {
-                boat.setLayoutY(newY);
-            }
+            // Mover el barco sin restricciones del contenedor actual
+            boat.setLayoutX(newX);
+            boat.setLayoutY(newY);
         });
 
         // Rotación con tecla R
-        boat.setOnKeyPressed(event -> handleRotation(event));
+        boat.setOnKeyPressed(this::handleRotation);
         boat.setFocusTraversable(true); // Necesario para capturar eventos de teclado
     }
+
 
     private void handleRotation(KeyEvent event) {
         if (event.getCode() == KeyCode.R) {
