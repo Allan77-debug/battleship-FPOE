@@ -53,6 +53,11 @@ public class BoardHandler extends BoardBase {
         }
     }
 
+    public boolean isWithinBounds(int row, int col) {
+        int gridSize = getGridSize();
+        return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
+    }
+
     /**
      * Convierte un color de JavaFX a formato RGB para poder usarlo en el estilo CSS.
      *

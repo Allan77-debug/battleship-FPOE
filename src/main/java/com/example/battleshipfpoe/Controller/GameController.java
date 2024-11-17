@@ -1,6 +1,7 @@
 package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
+import com.example.battleshipfpoe.Model.Boat.Boat;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -31,22 +32,63 @@ public class GameController {
         placeEnemyShipsRandomly();
     }
 
+    public void setBoatsList(List<Boat> boatsList) {
+        // Iterate over each boat in the list
+        for (Boat boat : boatsList) {
+            int[] position = boat.getPosition();  // Get the boat's position (row, col)
+            int row = position[0];
+            int col = position[1];
 
+            // Place the boat on the grid depending on its orientation
+            if (boat.isHorizontal()) {
+                for (int i = 0; i < boat.getLength(); i++) {
+                    boardHandler.placeShip(row, col + i);  // Place each cell for horizontal boat
+                }
+            } else {
+                for (int i = 0; i < boat.getLength(); i++) {
+                    boardHandler.placeShip(row + i, col);  // Place each cell for vertical boat
+                }
+            }
+        }
 
-    public void setBoatPositions(List<int[]> boatPositions) {
+        // After placing all boats, update the grid
+        boardHandler.updateGrid();
+        setupCellInteractions();  // Ensure all cells are interactive
+    }
+
+    /*public void setBoatPositions(List<int[]> boatPositions) {
         // Limpiar las posiciones previas si es necesario, o simplemente actualizarlas
         for (int[] position : boatPositions) {
             int row = position[0];
             int col = position[1];
 
-            boardHandler.placeShip(row, col);
-
+            // Assuming you have a way to know the size and orientation of the boat from the stored positions
+            // Example: You could have a list of boat objects (with size and orientation) to place them
+            Boat boat = getBoatForPosition(row, col);  // Retrieve boat based on row and col
+            if (boat != null) {
+                // Place the boat on the grid depending on its orientation
+                if (boat.isHorizontal()) {
+                    // Place the boat horizontally
+                    for (int i = 0; i < boat.getLength(); i++) {
+                        boardHandler.placeShip(row, col + i); // Place each cell for horizontal boat
+                    }
+                } else {
+                    // Place the boat vertically
+                    for (int i = 0; i < boat.getLength(); i++) {
+                        boardHandler.placeShip(row + i, col); // Place each cell for vertical boat
+                    }
+                }
+            }
         }
+
+        // Update the grid to reflect the new boat positions
         boardHandler.updateGrid();
         setupCellInteractions();
-    }
+    } */
 
-    private void placeEnemyShipsRandomly() {
+
+
+        private void placeEnemyShipsRandomly() {
         Random rand = new Random();
         int numShips = 2;
         int count = 0;
@@ -118,4 +160,7 @@ public class GameController {
             }
         }
     }
+
+
+
 }
