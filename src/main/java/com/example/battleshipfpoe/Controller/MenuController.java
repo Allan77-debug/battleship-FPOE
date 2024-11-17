@@ -2,101 +2,184 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.View.Boat;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.net.URL;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class MenuController implements Initializable {
 
     @FXML
     private AnchorPane BoardPane;
 
+    private List<int[]> boatPositions = new ArrayList<>();
+
+
     @FXML
     private Pane BoatPane;
 
     private BoardHandler boardHandler;
 
+    private Map<Rectangle, int[]> boatPositionsMap = new HashMap<>();
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Inicializar el tablero
         initializeBoard();
 
-
-        // Agregar barcos al BoatPane
-        addBoatToPane(new Boat(), 20, 20); // Primer barco
-        addBoatToPane(new Boat(), 20, 100); // Segundo barco
+        // Agregar rectángulos como barcos temporales
+        addBoatToPane(new Rectangle(), 20, 20);
+        addBoatToPane(new Rectangle(), 20, 100);
     }
+
 
     private void initializeBoard() {
-        double planeWidth = 600;  // Ajusta según sea necesario
+        double planeWidth = 600;
         double planeHeight = 600;
-        int gridSize = 10;        // Tamaño del tablero (10x10)
+        int gridSize = 10;
 
-        // Inicializar el tablero
+
         boardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, BoardPane);
 
-        // Dibujar el tablero
         boardHandler.updateGrid();
-        boardHandler.printBoard();
     }
 
-    private void addBoatToPane(Boat boat, double x, double y) {
-        boat.getBoat().setLayoutX(x);
-        boat.getBoat().setLayoutY(y);
+    private void addBoatToPane(Rectangle boat, double x, double y) {
+        boat.setLayoutX(x);
+        boat.setLayoutY(y);
+        boat.setFill(Color.LIGHTGREEN);
+        boat.setStroke(Color.BLACK);
+        boat.setWidth(50);
+        boat.setHeight(50);
 
-        // Configurar eventos para arrastrar y soltar entre paneles
         setupDragAndDrop(boat);
 
-        // Agregar el barco al panel de preparación
-        BoatPane.getChildren().add(boat.getBoat());
+        BoatPane.getChildren().add(boat);
     }
 
-    private void setupDragAndDrop(Boat boat) {
-        boat.getBoat().setOnMouseReleased(event -> {
-            // Verificar si el barco está sobre el tablero
-            if (isOverBoardPane(event)) {
-                // Transferir el barco al tablero
-                transferBoatToBoard(boat, event);
-            }
+    private void setupDragAndDrop(Rectangle boat) {
+        final double[] initialPosition = new double[2];
+        final double[] mouseOffset = new double[2];
+
+        boat.setOnMousePressed(event -> {
+            initialPosition[0] = boat.getLayoutX();
+            initialPosition[1] = boat.getLayoutY();
+
+            mouseOffset[0] = event.getSceneX() - boat.getLayoutX();
+            mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
+            boat.toFront();
+        });
+
+        boat.setOnMouseDragged(event -> {
+            double newX = event.getSceneX() - mouseOffset[0];
+            double newY = event.getSceneY() - mouseOffset[1];
+            boat.setLayoutX(newX);
+            boat.setLayoutY(newY);
+            boat.toFront();
+        });
+
+        boat.setOnMouseReleased(event -> {
+            snapToGrid(boat, event, initialPosition);
+            boat.toFront();
         });
     }
 
-    private boolean isOverBoardPane(MouseEvent event) {
-        // Obtener las coordenadas absolutas del tablero
-        double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
-        double boardY = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinY();
-        double boardWidth = BoardPane.getWidth();
-        double boardHeight = BoardPane.getHeight();
 
-        // Verificar si el mouse está dentro de los límites del tablero
-        return event.getSceneX() > boardX && event.getSceneX() < boardX + boardWidth &&
-                event.getSceneY() > boardY && event.getSceneY() < boardY + boardHeight;
-    }
-
-    private void transferBoatToBoard(Boat boat, MouseEvent event) {
-        // Remover del contenedor inicial
-        BoatPane.getChildren().remove(boat.getBoat());
-
-        // Agregar al tablero
-        BoardPane.getChildren().add(boat.getBoat());
-
-        // Ajustar las coordenadas del barco al tablero
+    private void snapToGrid(Rectangle boat, MouseEvent event, double[] initialPosition) {
         double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
         double boardY = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinY();
         double newX = event.getSceneX() - boardX;
         double newY = event.getSceneY() - boardY;
 
-        // Asegurarse de que las coordenadas estén dentro de los límites del tablero
-        if (newX >= 0 && newX <= BoardPane.getWidth() - boat.getBoat().getLayoutBounds().getWidth()) {
-            boat.getBoat().setLayoutX(newX);
-        }
-        if (newY >= 0 && newY <= BoardPane.getHeight() - boat.getBoat().getLayoutBounds().getHeight()) {
-            boat.getBoat().setLayoutY(newY);
+        double tileWidth = boardHandler.getTilesAcross();
+        double tileHeight = boardHandler.getTilesDown();
+        int col = (int) (newX / tileWidth);
+        int row = (int) (newY / tileHeight);
+
+        if (row >= 0 && row < boardHandler.getGridSize() && col >= 0 && col < boardHandler.getGridSize()) {
+            boolean isPositionChanged = false;
+
+            if (boatPositionsMap.containsKey(boat)) {
+                boatPositionsMap.remove(boat);
+            }
+
+            for (var node : BoardPane.getChildren()) {
+                if (node instanceof Pane) {
+                    Pane cell = (Pane) node;
+                    int[] cellCoords = (int[]) cell.getUserData();
+
+                    if (cellCoords[0] == row && cellCoords[1] == col) {
+                        if (!BoardPane.getChildren().contains(boat)) {
+                            BoardPane.getChildren().add(boat);
+                        }
+
+                        boat.setLayoutX(col * tileWidth);
+                        boat.setLayoutY(row * tileHeight);
+                        boat.toFront(); // Asegura que esté al frente
+
+                        boatPositionsMap.put(boat, new int[]{row, col});
+
+                        if (!boatPositions.contains(new int[]{row, col})) {
+                            boatPositions.add(new int[]{row, col});
+                        }
+
+                        boardHandler.placeShip(row, col);
+
+                        System.out.println("Barco colocado en la celda: Fila " + row + ", Columna " + col);
+                        isPositionChanged = true;
+                        return;
+                    }
+                }
+            }
+
+            if (!isPositionChanged) {
+                boat.setLayoutX(initialPosition[0]);
+                boat.setLayoutY(initialPosition[1]);
+            }
+        } else {
+            boat.setLayoutX(initialPosition[0]);
+            boat.setLayoutY(initialPosition[1]);
         }
     }
+    public void handleNextButton(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/game-view.fxml"));
+            Parent root = loader.load();
+
+            GameController gameController = loader.getController();
+
+            // Crear una lista que solo contenga las últimas posiciones
+            List<int[]> finalBoatPositions = new ArrayList<>();
+            for (Map.Entry<Rectangle, int[]> entry : boatPositionsMap.entrySet()) {
+                int[] finalPosition = entry.getValue();
+                finalBoatPositions.add(finalPosition);
+            }
+
+            // Pasar las posiciones finales de los barcos al GameController
+            gameController.setBoatPositions(finalBoatPositions);
+
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
 }
