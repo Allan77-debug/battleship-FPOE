@@ -50,7 +50,6 @@ public class BoardHandler extends BoardBase {
                 int tileValue = getCell(row, col);
                 Color tileColor;
 
-                // Si es un tablero enemigo, no mostramos los barcos
                 if (isBoardHidden&& tileValue == 1) {
                     tileColor = BACKGROUND_COLOR_1; // Agua (escondemos el barco)
                 } else {

@@ -169,7 +169,13 @@ public class GameController {
                     } else {
                         enemyBoardHandler.registerMiss(row, col);
                     }
-                    enemyBoardHandler.updateGrid(true);
+
+                    if (isBoardRevealed == false) {
+                        enemyBoardHandler.updateGrid(true);
+                    }
+                    if (isBoardRevealed == true) {
+                        enemyBoardHandler.updateGrid(false);
+                    }
                 });
             }
         }
@@ -179,9 +185,11 @@ public class GameController {
     public void handleRevealBoard(ActionEvent event) {
         if (isBoardRevealed == false){
             enemyBoardHandler.updateGrid(false);
+            setupCellInteractions();
             isBoardRevealed = true;
         } else {
             enemyBoardHandler.updateGrid(true);
+            setupCellInteractions();
             isBoardRevealed = false;
         }
     }
