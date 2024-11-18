@@ -2,6 +2,7 @@ package com.example.battleshipfpoe.Model.Board;
 
 import com.example.battleshipfpoe.Model.List.ArrayList;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -13,6 +14,8 @@ public class BoardHandler extends BoardBase {
     private static final Color HIT_COLOR = Color.RED;
     private static final Color MISS_COLOR = Color.BLUE;
 
+    private boolean initializeEmpty;
+
     /**
      * Constructor for BoardHandler.
      *
@@ -23,38 +26,65 @@ public class BoardHandler extends BoardBase {
      */
     public BoardHandler(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
         super(planeWidth, planeHeight, gridSize, anchorPane);
+
     }
+
+
 
     /**
      * Updates the grid visually based on the current board state.
      */
-    public void updateGrid() {
-        // Clear the previous grid visuals
-        getAnchorPane().getChildren().clear();
+    public void updateGrid(boolean isBoardHidden) {
+        getAnchorPane().getChildren().clear(); // Limpiar el tablero antes de redibujarlo
 
-        // Iterate over the board and create rectangles for each tile
         for (int row = 0; row < getGridSize(); row++) {
             for (int col = 0; col < getGridSize(); col++) {
+                // Crear una nueva celda
+                Pane cell = new Pane();
+                cell.setPrefSize(getTilesAcross(), getTilesDown());
+                cell.setLayoutX(col * getTilesAcross());
+                cell.setLayoutY(row * getTilesDown());
+                cell.setStyle("-fx-border-color: black; -fx-background-color: transparent;"); // Fondo transparente
+
+                // Determinar el color de la celda según su valor
                 int tileValue = getCell(row, col);
+                Color tileColor;
 
-                // Create a rectangle for the current cell
-                Rectangle rectangle = new Rectangle(
-                        col * getTilesAcross(),   // X position
-                        row * getTilesDown(),    // Y position
-                        getTilesAcross(),        // Width
-                        getTilesDown()           // Height
-                );
+                // Si es un tablero enemigo, no mostramos los barcos
+                if (isBoardHidden&& tileValue == 1) {
+                    tileColor = BACKGROUND_COLOR_1; // Agua (escondemos el barco)
+                } else {
+                    tileColor = determineTileColor(tileValue);
+                }
 
-                // Set the color based on the tile's value
-                rectangle.setFill(determineTileColor(tileValue));
-                rectangle.setStroke(Color.BLACK);  // Add a black border
-                rectangle.setStrokeWidth(1);
+                cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
 
-                // Add the rectangle to the anchor pane
-                getAnchorPane().getChildren().add(rectangle);
+                // Agregar identificadores para la celda
+                cell.setUserData(new int[]{row, col});
+                getAnchorPane().getChildren().add(cell);
             }
         }
     }
+
+
+    public boolean isWithinBounds(int row, int col) {
+        int gridSize = getGridSize();
+        return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
+    }
+
+    /**
+     * Convierte un color de JavaFX a formato RGB para poder usarlo en el estilo CSS.
+     *
+     * @param color el color a convertir
+     * @return el color en formato RGB como cadena
+     */
+    private String toRgbString(Color color) {
+        return "rgb(" + (int)(color.getRed() * 255) + "," +
+                (int)(color.getGreen() * 255) + "," +
+                (int)(color.getBlue() * 255) + ")";
+    }
+
+
 
     /**
      * Determines the color for a given tile value.
