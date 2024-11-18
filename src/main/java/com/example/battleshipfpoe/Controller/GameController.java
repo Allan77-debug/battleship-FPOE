@@ -2,6 +2,8 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
+import com.example.battleshipfpoe.Model.List.ArrayList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -18,6 +20,7 @@ public class GameController {
 
     private BoardHandler boardHandler;
     private BoardHandler enemyBoardHandler;
+    private Boolean isBoardRevealed;
 
     public void initialize() {
         double planeWidth = 400;
@@ -25,10 +28,11 @@ public class GameController {
         int gridSize = 10;
 
         boardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, gameBoardPane);
-        boardHandler.updateGrid();
+        boardHandler.updateGrid(false);
 
         enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
-        enemyBoardHandler.updateGrid();
+        enemyBoardHandler.updateGrid(true);
+        isBoardRevealed = false;
         placeEnemyShipsRandomly();
     }
 
@@ -52,7 +56,7 @@ public class GameController {
         }
 
         // After placing all boats, update the grid
-        boardHandler.updateGrid();
+        boardHandler.updateGrid(false);
         setupCellInteractions();  // Ensure all cells are interactive
     }
 
@@ -88,22 +92,32 @@ public class GameController {
 
 
 
-        private void placeEnemyShipsRandomly() {
+    private void placeEnemyShipsRandomly() {
         Random rand = new Random();
-        int numShips = 2;
+        int numShips = 2; // Número de barcos a colocar
         int count = 0;
 
-        while (count < numShips) {
-            int x = rand.nextInt(10);
-            int y = rand.nextInt(10);
+        // Obtén la matriz de celdas del tablero enemigo
+        ArrayList<ArrayList<Integer>> enemyGrid = enemyBoardHandler.getBoard();
 
-            if (enemyBoardHandler.getCell(x, y) == 0) {
-                enemyBoardHandler.setCell(x, y, 1);
+        while (count < numShips) {
+            int x = rand.nextInt(enemyBoardHandler.getGridSize()); // Coordenada x aleatoria
+            int y = rand.nextInt(enemyBoardHandler.getGridSize()); // Coordenada y aleatoria
+
+            // Verifica si la celda está vacía (0 representa agua)
+            if (enemyGrid.get(x).get(y) == 0) {
+                enemyGrid.get(x).set(y, 1); // 1 representa un barco
                 count++;
             }
         }
-        enemyBoardHandler.updateGrid();
+        setupCellInteractions();
+
+        // Actualiza la vista del tablero enemigo
+        System.out.println("Tablero enemigo");
+        enemyBoardHandler.printBoard();
+
     }
+
 
 // El tablero enemigo muestra las naves, aun no se como ocultarlas.
     /*private void hideEnemyShips() {
@@ -138,7 +152,7 @@ public class GameController {
                     } else {
                         boardHandler.registerMiss(row, col);
                     }
-                    boardHandler.updateGrid();
+                    boardHandler.updateGrid(false);
                 });
             }
         }
@@ -155,12 +169,20 @@ public class GameController {
                     } else {
                         enemyBoardHandler.registerMiss(row, col);
                     }
-                    enemyBoardHandler.updateGrid();
+                    enemyBoardHandler.updateGrid(true);
                 });
             }
         }
     }
 
 
-
+    public void handleRevealBoard(ActionEvent event) {
+        if (isBoardRevealed == false){
+            enemyBoardHandler.updateGrid(false);
+            isBoardRevealed = true;
+        } else {
+            enemyBoardHandler.updateGrid(true);
+            isBoardRevealed = false;
+        }
+    }
 }

@@ -14,6 +14,8 @@ public class BoardHandler extends BoardBase {
     private static final Color HIT_COLOR = Color.RED;
     private static final Color MISS_COLOR = Color.BLUE;
 
+    private boolean initializeEmpty;
+
     /**
      * Constructor for BoardHandler.
      *
@@ -24,13 +26,16 @@ public class BoardHandler extends BoardBase {
      */
     public BoardHandler(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
         super(planeWidth, planeHeight, gridSize, anchorPane);
+
     }
+
+
 
     /**
      * Updates the grid visually based on the current board state.
      */
-    public void updateGrid() {
-        getAnchorPane().getChildren().clear();  // Limpiar el tablero antes de redibujarlo
+    public void updateGrid(boolean isBoardHidden) {
+        getAnchorPane().getChildren().clear(); // Limpiar el tablero antes de redibujarlo
 
         for (int row = 0; row < getGridSize(); row++) {
             for (int col = 0; col < getGridSize(); col++) {
@@ -42,8 +47,16 @@ public class BoardHandler extends BoardBase {
                 cell.setStyle("-fx-border-color: black; -fx-background-color: transparent;"); // Fondo transparente
 
                 // Determinar el color de la celda según su valor
-                int tileValue = getCell(row, col);  // Suponiendo que getCell() te da el valor de la celda
-                Color tileColor = determineTileColor(tileValue);
+                int tileValue = getCell(row, col);
+                Color tileColor;
+
+                // Si es un tablero enemigo, no mostramos los barcos
+                if (isBoardHidden&& tileValue == 1) {
+                    tileColor = BACKGROUND_COLOR_1; // Agua (escondemos el barco)
+                } else {
+                    tileColor = determineTileColor(tileValue);
+                }
+
                 cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
 
                 // Agregar identificadores para la celda
@@ -52,6 +65,7 @@ public class BoardHandler extends BoardBase {
             }
         }
     }
+
 
     public boolean isWithinBounds(int row, int col) {
         int gridSize = getGridSize();

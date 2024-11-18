@@ -58,7 +58,7 @@ public class MenuController implements Initializable {
 
         boardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, BoardPane);
 
-        boardHandler.updateGrid();
+        boardHandler.updateGrid(false);
     }
 
     private void addBoatToPane(Boat boat) {
