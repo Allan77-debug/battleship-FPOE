@@ -116,12 +116,6 @@ public class Boat extends Group implements BoatInterface {
         isHorizontal = horizontal;
     }
 
-    public int getCurrentRow() {
-        return currentRow;
-    }
-    public int getCurrentCol() {
-        return currentCol;
-    }
     public int[] getPosition() {
         // Return the current position of the boat as an array [row, col]
         return new int[]{currentRow, currentCol};
@@ -157,6 +151,7 @@ public class Boat extends Group implements BoatInterface {
 
     private void handleRotation(KeyEvent event) {
         if (event.getCode() == KeyCode.R) {
+            System.out.println("Rotate");
             toggleOrientation();
         }
     }
