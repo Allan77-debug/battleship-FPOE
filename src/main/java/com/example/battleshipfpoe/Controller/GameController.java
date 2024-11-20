@@ -54,13 +54,14 @@ public class GameController {
             if (boat.isHorizontal()) {
                 for (int i = 0; i < boat.getLength(); i++) {
                     PlayerHandler.placeShip(row, col + i);  // Place each cell for horizontal boat
+                    playerCount++;
                 }
             } else {
                 for (int i = 0; i < boat.getLength(); i++) {
                     PlayerHandler.placeShip(row + i, col);  // Place each cell for vertical boat
+                    playerCount++;
                 }
             }
-            playerCount++;
         }
 
         // After placing all boats, update the grid
