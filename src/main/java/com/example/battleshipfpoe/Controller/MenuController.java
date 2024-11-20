@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -17,37 +18,35 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MenuController implements Initializable {
 
     @FXML
     private AnchorPane BoardPane;
+    boolean isSnapped;
+    boolean beingDragged;
+    final boolean[] initialOrientation = new boolean[1];
 
-    private List<int[]> boatPositions = new ArrayList<>();
 
 
     @FXML
     private Pane BoatPane;
 
+    private boolean isPositionValid;
+
     private BoardHandler boardHandler;
 
-    private Map<Boat, int[]> boatPositionsMap = new HashMap<Boat, int[]>();
+    private final Map<Boat, int[]> boatPositionsMap = new HashMap<Boat, int[]>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeBoard();
 
-        Boat boat1 = new  Boat(20,20,1,true);
-        addBoatToPane(boat1);
-        Boat boat2 = new  Boat(20,100,2,true);
+        Boat boat2 = new Boat(20, 100, 2, true);
+        Boat boat3 = new Boat(20, 200, 3, true);
         addBoatToPane(boat2);
-        Boat boat3 = new  Boat(20,180,3,false);
         addBoatToPane(boat3);
-    }
-    private Boat getSelectedBoat() {
-        // You may want to implement logic for selecting the boat (e.g., the last boat clicked)
-        // In this example, we simply return the first boat for demonstration purposes
-        return boatPositionsMap.keySet().iterator().next();  // Get the first boat in the map
     }
 
     private void initializeBoard() {
@@ -79,63 +78,18 @@ public class MenuController implements Initializable {
         int col = (int) (newX / tileWidth);
         int row = (int) (newY / tileHeight);
 
-        int boatSize = boat.getChildren().size(); // Size of the ship (number of cells it occupies)
-
-        // Make sure the ship fits within the grid, horizontally or vertically
-        boolean validPlacement = true;
-
-        // Check if the ship is horizontal or vertical
-        if (boat.isHorizontal()) {
-            // Horizontal ship check (ensure col + i doesn't go out of bounds)
-            if (col + boatSize - 1 >= boardHandler.getGridSize()) {
-                validPlacement = false;
-            }
-
-            // Check if the cells for the ship's horizontal placement are available
-            for (int i = 0; i < boatSize; i++) {
-                // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
-                    validPlacement = false;
-                    break;
-                }
-            }
-
-        } else {
-            // Vertical ship check (ensure row + i doesn't go out of bounds)
-            if (row + boatSize - 1 >= boardHandler.getGridSize()) {
-                validPlacement = false;
-            }
-
-            // Check if the cells for the ship's vertical placement are available
-            for (int i = 0; i < boatSize; i++) {
-                // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
-                    validPlacement = false;
-                    break;
-                }
-            }
-
-        }
-
-        if (validPlacement) {
-            // If the boat is already placed, we clear the old position in the grid and map
-            if (boatPositionsMap.containsKey(boat)) {
-                // Get the old position of the boat from the HashMap
-                int[] oldPosition = boatPositionsMap.get(boat);
-                int oldRow = oldPosition[0];
-                int oldCol = oldPosition[1];
-
-                // Clear the boat's old position in the grid using the Boat class method
-                boat.clearBoatPosition(boardHandler);
-            }
-            // Clear the boat from the grid at its old position
+        if (ValidPlacement(boat, col, row)) {
+            boat.setWasFirstMove(false);
+            isPositionValid = true;
+            isSnapped = true;
+            boat.clearBoatPosition(boardHandler);
 
             // Snap the boat to the new grid position
             boat.setLayoutX(col * tileWidth);
             boat.setLayoutY(row * tileHeight);
 
             // Update the board matrix with the new position of the boat
-            boat.storePosition(row, col); // Store the new position
+            boat.storePosition(row, col);
             boatPositionsMap.put(boat, new int[]{row, col});
             boat.updateBoatPosition(boardHandler);
 
@@ -144,29 +98,54 @@ public class MenuController implements Initializable {
                 BoardPane.getChildren().add(boat);
             }
 
-            // Bring the boat to the front after adding it to the parent container
             boat.toFront();
-
             return;
         }
 
-        // If the placement is invalid, revert to the initial position
-        boat.setLayoutX(initialPosition[0]);
-        boat.setLayoutY(initialPosition[1]);
-    }
+        // Si la colocación es inválida, revertir al estado original y limpiar la posición en la matriz
+        if (!ValidPlacement(boat, col, row)) {
+            // Restaurar posición y orientación inicial
+            boat.setLayoutX(initialPosition[0]);
+            boat.setLayoutY(initialPosition[1]);
 
+            if (boat.isRotated() != initialOrientation[0]) {
+                boat.rotate(); // Cambia de orientación si fue rotado durante el movimiento
+            }
+
+            isPositionValid = false;
+            isSnapped = false;
+
+            if (!boat.isWasFirstMove()) {
+                boat.updateBoatPosition(boardHandler);
+            }
+            return;
+        }
+
+
+        // Si el barco regresa a su posición inicial y nunca se colocó, marcar como no movido
+        if (boat.getLayoutX() == boardX && boat.getLayoutY() ==boardY) {
+            boat.setWasFirstMove(true);
+        }
+    }
 
     private void setupDragAndDrop(Boat boat) {
         final double[] initialPosition = new double[2];
         final double[] mouseOffset = new double[2];
 
+
         boat.setOnMousePressed(event -> {
+
             initialPosition[0] = boat.getLayoutX();
             initialPosition[1] = boat.getLayoutY();
+            initialOrientation[0] = boat.isRotated();
+
 
             mouseOffset[0] = event.getSceneX() - boat.getLayoutX();
             mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
             boat.toFront();
+            boat.requestFocus(); // Asegura que el barco recibe el enfoque
+            boat.clearBoatPosition(boardHandler);
+            boardHandler.printBoard();
         });
 
         boat.setOnMouseDragged(event -> {
@@ -175,16 +154,68 @@ public class MenuController implements Initializable {
             boat.setLayoutX(newX);
             boat.setLayoutY(newY);
             boat.toFront();
+            beingDragged = true;
+        });
+
+        // En la rotación, ajusta la posición después de la rotación y luego realiza el "snap to grid"
+        boat.setOnKeyPressed(event -> {
+            if (beingDragged && event.getCode() == KeyCode.R) {
+                boat.rotate();
+                boat.setRotated(boat.isRotated());
+                boat.toFront();
+            }
         });
 
         boat.setOnMouseReleased(event -> {
+            // Realizar la validación al soltar el barco después de arrastrarlo
+
+
             snapToGrid(boat, event, initialPosition);
+
             boat.toFront();
             System.out.println("-------------------");
+            System.out.println(isPositionValid);
             boardHandler.printBoard();
+            beingDragged = false;
         });
+
+        boat.setFocusTraversable(true); // Habilita el enfoque del barco para recibir eventos de teclado
     }
 
+
+    private boolean ValidPlacement(Boat boat, int col, int row) {
+        int boatSize = boat.getChildren().size();
+        if (!boat.isRotated()) {
+            // Horizontal ship check (ensure col + i doesn't go out of bounds)
+            if (col + boatSize - 1 >= boardHandler.getGridSize()) {
+                return false;
+            }
+
+            // Check if the cells for the ship's horizontal placement are available
+            for (int i = 0; i < boatSize; i++) {
+                // Use the boundary-checking method
+                if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
+                    return false;
+                }
+            }
+
+        } else {
+            // Vertical ship check (ensure row + i doesn't go out of bounds)
+            if (row + boatSize - 1 >= boardHandler.getGridSize()) {
+                return false;
+            }
+
+            // Check if the cells for the ship's vertical placement are available
+            for (int i = 0; i < boatSize; i++) {
+                // Use the boundary-checking method
+                if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
+                    return false;
+                }
+            }
+
+        }
+        return true;
+    }
 
 
     public void handleNextButton(ActionEvent event) {
@@ -208,10 +239,4 @@ public class MenuController implements Initializable {
             e.printStackTrace();
         }
     }
-
-
-
-
-
-
 }

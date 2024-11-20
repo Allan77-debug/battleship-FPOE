@@ -1,14 +1,14 @@
 package com.example.battleshipfpoe.Model.Boat;
 
+import com.example.battleshipfpoe.Controller.GameController;
+import com.example.battleshipfpoe.Controller.MenuController;
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import javafx.scene.Group;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-
-import java.util.Map;
 
 public class Boat extends Group implements BoatInterface {
 
@@ -19,6 +19,9 @@ public class Boat extends Group implements BoatInterface {
     private int currentRow = -1;
     private int currentCol = -1;
     private BoardHandler boardHandler;
+    private boolean rotated = false;
+
+    private boolean wasFirstMove = true;
 
     public Boat(double startX, double startY, int length, boolean isHorizontal) {
         this.startX = startX;
@@ -31,6 +34,8 @@ public class Boat extends Group implements BoatInterface {
 
         setupInteractions();
     }
+
+
 
     @Override
     public void placeBoat(double startX, double startY, int length, boolean isHorizontal) {
@@ -63,30 +68,30 @@ public class Boat extends Group implements BoatInterface {
     public void storePosition(int row, int col) {
         this.currentRow = row;
         this.currentCol = col;
-        System.out.println(currentRow + " " + currentCol);
+        System.out.println("Snapped at row: " + currentRow + ", col: " + currentCol);
     }
 
-    // Method to clear the boat's old position in the matrix
     public void clearBoatPosition(BoardHandler boardHandler) {
-        for (int i = 0; i < length; i++) {
-            if (isHorizontal) {
-                // Clear horizontal positions
-                boardHandler.setCell(currentRow, currentCol + i, 0);
-            } else {
-                // Clear vertical positions
-                boardHandler.setCell(currentRow + i, currentCol, 0);
+        if (currentRow == -1 || currentCol == -1) {
+            return;
+        }
+        // Borra la posición actual del barco
+        if (!rotated) {
+            for (int i = 0; i < length; i++) {
+                boardHandler.setCell(currentRow, currentCol + i, 0); // Borra en horizontal
             }
+        } else if(rotated) {
+        for (int i = 0; i < length; i++) {
+            boardHandler.setCell(currentRow + i, currentCol, 0); // Borra en vertical
         }
     }
+}
 
-    // Method to update the boat's position in the matrix
     public void updateBoatPosition(BoardHandler boardHandler) {
         for (int i = 0; i < length; i++) {
             if (isHorizontal) {
-                // Update horizontal positions
                 boardHandler.setCell(currentRow, currentCol + i, 1);
             } else {
-                // Update vertical positions
                 boardHandler.setCell(currentRow + i, currentCol, 1);
             }
         }
@@ -116,16 +121,10 @@ public class Boat extends Group implements BoatInterface {
         isHorizontal = horizontal;
     }
 
-    public int getCurrentRow() {
-        return currentRow;
-    }
-    public int getCurrentCol() {
-        return currentCol;
-    }
     public int[] getPosition() {
-        // Return the current position of the boat as an array [row, col]
         return new int[]{currentRow, currentCol};
     }
+
     public void setBoardHandler(BoardHandler boardHandler) {
         this.boardHandler = boardHandler;
     }
@@ -136,7 +135,7 @@ public class Boat extends Group implements BoatInterface {
                     event.getSceneX() - this.getLayoutX(),
                     event.getSceneY() - this.getLayoutY()
             });
-            this.requestFocus(); // Obtener el foco cuando se haga clic en el barco
+            this.requestFocus();
         });
 
         this.setOnMouseDragged(event -> {
@@ -144,24 +143,47 @@ public class Boat extends Group implements BoatInterface {
             double newX = event.getSceneX() - offsets[0];
             double newY = event.getSceneY() - offsets[1];
 
-            // Mover el barco sin restricciones del contenedor actual
             this.setLayoutX(newX);
             this.setLayoutY(newY);
+
         });
 
-        // Rotación con tecla R
-        this.setOnKeyPressed(this::handleRotation);
-        this.setFocusTraversable(true); // Necesario para capturar eventos de teclado
     }
 
 
-    private void handleRotation(KeyEvent event) {
-        if (event.getCode() == KeyCode.R) {
-            toggleOrientation();
-        }
-    }
-    private void toggleOrientation() {
+    public void rotate() {
+        rotated = !rotated;
+
         isHorizontal = !isHorizontal;
-        this.setRotate(isHorizontal ? 0 : 90);
+
+        this.getChildren().clear();
+        placeBoat(getLayoutX(), getLayoutY(), length, isHorizontal);
+
+        System.out.println("--------");
+        boardHandler.printBoard();
+        System.out.println("Boat rotated.");
+        System.out.println("Placing boat at X: " + getLayoutX() + ", Y: " + getLayoutY() + ", Horizontal: " + isHorizontal);
+        boardHandler.printBoard();
+        System.out.println("--------");
     }
+
+
+
+    public boolean isWasFirstMove() {
+        return wasFirstMove;
+    }
+
+    public void setWasFirstMove(boolean wasFirstMove) {
+        this.wasFirstMove = wasFirstMove;
+    }
+
+    public boolean isRotated() {
+        return rotated;
+    }
+
+    public void setRotated(boolean wasRotated) {
+        rotated = wasRotated;
+    }
+
+
 }
