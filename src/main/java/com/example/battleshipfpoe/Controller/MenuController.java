@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -17,17 +18,22 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MenuController implements Initializable {
 
     @FXML
     private AnchorPane BoardPane;
+    boolean isSnapped;
+    boolean beingDragged;
+    final boolean[] initialOrientation = new boolean[1];
 
-    private List<int[]> boatPositions = new ArrayList<>();
 
 
     @FXML
     private Pane BoatPane;
+
+    private boolean isPositionValid;
 
     private BoardHandler boardHandler;
 
@@ -38,7 +44,9 @@ public class MenuController implements Initializable {
         initializeBoard();
 
         Boat boat2 = new Boat(20, 100, 2, true);
+        Boat boat3 = new Boat(20, 200, 3, true);
         addBoatToPane(boat2);
+        addBoatToPane(boat3);
     }
 
     private void initializeBoard() {
@@ -71,13 +79,17 @@ public class MenuController implements Initializable {
         int row = (int) (newY / tileHeight);
 
         if (ValidPlacement(boat, col, row)) {
+            boat.setWasFirstMove(false);
+            isPositionValid = true;
+            isSnapped = true;
+            boat.clearBoatPosition(boardHandler);
 
             // Snap the boat to the new grid position
             boat.setLayoutX(col * tileWidth);
             boat.setLayoutY(row * tileHeight);
 
             // Update the board matrix with the new position of the boat
-            boat.storePosition(row, col); // Store the new position
+            boat.storePosition(row, col);
             boatPositionsMap.put(boat, new int[]{row, col});
             boat.updateBoatPosition(boardHandler);
 
@@ -85,28 +97,55 @@ public class MenuController implements Initializable {
             if (!BoardPane.getChildren().contains(boat)) {
                 BoardPane.getChildren().add(boat);
             }
-            // Bring the boat to the front after adding it to the parent container
-            boat.toFront();
 
+            boat.toFront();
             return;
         }
 
-        // If the placement is invalid, revert to the initial position
-        boat.setLayoutX(initialPosition[0]);
-        boat.setLayoutY(initialPosition[1]);
+        // Si la colocación es inválida, revertir al estado original y limpiar la posición en la matriz
+        if (!ValidPlacement(boat, col, row)) {
+            // Restaurar posición y orientación inicial
+            boat.setLayoutX(initialPosition[0]);
+            boat.setLayoutY(initialPosition[1]);
+
+            if (boat.isRotated() != initialOrientation[0]) {
+                boat.rotate(); // Cambia de orientación si fue rotado durante el movimiento
+            }
+
+            isPositionValid = false;
+            isSnapped = false;
+
+            if (!boat.isWasFirstMove()) {
+                boat.updateBoatPosition(boardHandler);
+            }
+            return;
+        }
+
+
+        // Si el barco regresa a su posición inicial y nunca se colocó, marcar como no movido
+        if (boat.getLayoutX() == boardX && boat.getLayoutY() ==boardY) {
+            boat.setWasFirstMove(true);
+        }
     }
 
     private void setupDragAndDrop(Boat boat) {
         final double[] initialPosition = new double[2];
         final double[] mouseOffset = new double[2];
 
+
         boat.setOnMousePressed(event -> {
+
             initialPosition[0] = boat.getLayoutX();
             initialPosition[1] = boat.getLayoutY();
+            initialOrientation[0] = boat.isRotated();
+
 
             mouseOffset[0] = event.getSceneX() - boat.getLayoutX();
             mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
             boat.toFront();
+            boat.requestFocus(); // Asegura que el barco recibe el enfoque
+            boat.clearBoatPosition(boardHandler);
+            boardHandler.printBoard();
         });
 
         boat.setOnMouseDragged(event -> {
@@ -115,28 +154,38 @@ public class MenuController implements Initializable {
             boat.setLayoutX(newX);
             boat.setLayoutY(newY);
             boat.toFront();
-            if (boatPositionsMap.containsKey(boat)) {
-                // Get the old position of the boat from the HashMap
-                int[] oldPosition = boatPositionsMap.get(boat);
-                int oldRow = oldPosition[0];
-                int oldCol = oldPosition[1];
+            beingDragged = true;
+        });
 
-                // Clear the boat's old position in the grid using the Boat class method
-                boat.clearBoatPosition(boardHandler);
+        // En la rotación, ajusta la posición después de la rotación y luego realiza el "snap to grid"
+        boat.setOnKeyPressed(event -> {
+            if (beingDragged && event.getCode() == KeyCode.R) {
+                boat.rotate();
+                boat.setRotated(boat.isRotated());
+                boat.toFront();
             }
         });
 
         boat.setOnMouseReleased(event -> {
+            // Realizar la validación al soltar el barco después de arrastrarlo
+
+
             snapToGrid(boat, event, initialPosition);
+
             boat.toFront();
             System.out.println("-------------------");
+            System.out.println(isPositionValid);
             boardHandler.printBoard();
+            beingDragged = false;
         });
+
+        boat.setFocusTraversable(true); // Habilita el enfoque del barco para recibir eventos de teclado
     }
+
 
     private boolean ValidPlacement(Boat boat, int col, int row) {
         int boatSize = boat.getChildren().size();
-        if (boat.isHorizontal()) {
+        if (!boat.isRotated()) {
             // Horizontal ship check (ensure col + i doesn't go out of bounds)
             if (col + boatSize - 1 >= boardHandler.getGridSize()) {
                 return false;
@@ -168,6 +217,7 @@ public class MenuController implements Initializable {
         return true;
     }
 
+
     public void handleNextButton(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/game-view.fxml"));
@@ -189,10 +239,4 @@ public class MenuController implements Initializable {
             e.printStackTrace();
         }
     }
-
-
-
-
-
-
 }
