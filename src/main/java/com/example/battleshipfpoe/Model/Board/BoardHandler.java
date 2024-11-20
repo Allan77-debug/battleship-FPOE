@@ -6,6 +6,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
+import java.util.Map;
+
 public class BoardHandler extends BoardBase {
 
     private static final Color BACKGROUND_COLOR_1 = Color.rgb(127, 205, 255);
@@ -35,37 +37,61 @@ public class BoardHandler extends BoardBase {
      * Updates the grid visually based on the current board state.
      */
     public void updateGrid(boolean isBoardHidden) {
-        getAnchorPane().getChildren().clear(); // Limpiar el tablero antes de redibujarlo
+        clearBoard();
+        drawGrid(isBoardHidden);
+    }
 
+
+    private void clearBoard() {
+        getAnchorPane().getChildren().clear();
+    }
+    private void drawGrid(boolean isBoardHidden) {
         for (int row = 0; row < getGridSize(); row++) {
             for (int col = 0; col < getGridSize(); col++) {
-                // Crear una nueva celda
-                Pane cell = new Pane();
-                cell.setPrefSize(getTilesAcross(), getTilesDown());
-                cell.setLayoutX(col * getTilesAcross());
-                cell.setLayoutY(row * getTilesDown());
-                cell.setStyle("-fx-border-color: black; -fx-background-color: transparent;"); // Fondo transparente
-
-                // Determinar el color de la celda según su valor
-                int tileValue = getCell(row, col);
-                Color tileColor;
-
-                // Si es un tablero enemigo, no mostramos los barcos
-                if (isBoardHidden&& tileValue == 1) {
-                    tileColor = BACKGROUND_COLOR_1; // Agua (escondemos el barco)
-                } else {
-                    tileColor = determineTileColor(tileValue);
-                }
-
-                cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
-
-                // Agregar identificadores para la celda
-                cell.setUserData(new int[]{row, col});
-                getAnchorPane().getChildren().add(cell);
+                Pane cell = createCell(row, col, isBoardHidden);
+                getAnchorPane().getChildren().add(cell); // Add the cell to the board
             }
         }
     }
 
+    private Pane createCell(int row, int col, boolean isBoardHidden) {
+        Pane cell = new Pane();
+        cell.setPrefSize(getTilesAcross(), getTilesDown());
+        cell.setLayoutX(col * getTilesAcross());
+        cell.setLayoutY(row * getTilesDown());
+        cell.setStyle("-fx-border-color: black; -fx-background-color: transparent;");
+
+        int tileValue = getCell(row, col); // Get the value of the tile
+        Color tileColor = getCellColor(tileValue, isBoardHidden);
+
+        cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+        cell.setUserData(new int[]{row, col}); // Set row and col as user data
+
+        return cell;
+    }
+
+    private Color getCellColor(int tileValue, boolean isBoardHidden) {
+        // If it's a hidden board and the tile is a ship, hide the ship
+        if (isBoardHidden && tileValue == 1) {
+            return BACKGROUND_COLOR_1; // Water (hides the ship)
+        }
+        return determineTileColor(tileValue); // Use the existing logic for color determination
+    }
+    /**
+     * Determines the color for a given tile value.
+     *
+     * @param tileValue the value of the tile
+     * @return the corresponding color
+     */
+    private Color determineTileColor(int tileValue) {
+        final Map<Integer, Color> TILE_COLOR_MAP = Map.of(
+                1, SHIP_COLOR,   // Ship
+                2, HIT_COLOR,    // Hit
+                -1, MISS_COLOR    // Miss
+                // Water is the default case, see below
+        ); // Alternating pattern can be added if needed
+        return TILE_COLOR_MAP.getOrDefault(tileValue,BACKGROUND_COLOR_1);
+    }
 
     public boolean isWithinBounds(int row, int col) {
         int gridSize = getGridSize();
@@ -82,27 +108,6 @@ public class BoardHandler extends BoardBase {
         return "rgb(" + (int)(color.getRed() * 255) + "," +
                 (int)(color.getGreen() * 255) + "," +
                 (int)(color.getBlue() * 255) + ")";
-    }
-
-
-
-    /**
-     * Determines the color for a given tile value.
-     *
-     * @param tileValue the value of the tile
-     * @return the corresponding color
-     */
-    private Color determineTileColor(int tileValue) {
-        switch (tileValue) {
-            case 1:  // Ship
-                return SHIP_COLOR;
-            case 2:  // Hit
-                return HIT_COLOR;
-            case -1: // Miss
-                return MISS_COLOR;
-            default: // Water
-                return BACKGROUND_COLOR_1;  // Alternating pattern can be added if needed
-        }
     }
 
     /**
@@ -133,5 +138,9 @@ public class BoardHandler extends BoardBase {
      */
     public void registerMiss(int row, int col) {
         setCell(row, col, -1);  // -1 represents a miss
+    }
+
+    public boolean allShipsSunk() {
+        return false;
     }
 }
