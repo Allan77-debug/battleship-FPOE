@@ -13,6 +13,29 @@ public abstract class BoardBase {
     private final int tilesDown;
     private final AnchorPane anchorPane;
     private final ArrayList<ArrayList<Integer>> board;
+
+    public BoardBase() {
+        // Default values for the no-argument constructor
+        this.planeWidth = 400;        // Default plane width
+        this.planeHeight = 400;       // Default plane height
+        this.gridSize = 10;           // Default grid size (10x10)
+        this.anchorPane = null;       // AnchorPane will be reinitialized after deserialization
+
+        this.tilesAcross = (int) (planeWidth / gridSize);
+        this.tileAmount = (int) ((planeWidth / gridSize) * (planeHeight / gridSize));
+        this.tilesDown = tileAmount / tilesAcross;
+
+        // Initialize the board with default values
+        board = new ArrayList<>();
+        for (int i = 0; i < gridSize; i++) {
+            ArrayList<Integer> row = new ArrayList<>();
+            for (int j = 0; j < gridSize; j++) {
+                row.addLast(0); // Default to 0 (water)
+            }
+            board.addLast(row);
+        }
+    }
+
     /**
      * Constructs a BoardBase object with the given parameters.
      *

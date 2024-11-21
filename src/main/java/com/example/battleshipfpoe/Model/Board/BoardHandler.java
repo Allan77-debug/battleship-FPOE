@@ -1,18 +1,32 @@
 package com.example.battleshipfpoe.Model.Board;
 
+import com.example.battleshipfpoe.Model.List.ArrayList;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
-public class BoardHandler extends BoardBase {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class BoardHandler extends BoardBase implements Serializable {
 
     private static final Color BACKGROUND_COLOR_1 = Color.rgb(127, 205, 255);
     private static final Color SHIP_COLOR = Color.GRAY;
     private static final Color HIT_COLOR = Color.RED;
     private static final Color MISS_COLOR = Color.BLUE;
 
+    private ArrayList<ArrayList<Integer>> board; // Logical state of the board
+    private transient AnchorPane anchorPane; // Transient field for UI, not serialized
+
+
+    public BoardHandler() {
+        this.board = new ArrayList<>();
+    }
+
+    // Constructor
     public BoardHandler(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
         super(planeWidth, planeHeight, gridSize, anchorPane);
+        this.anchorPane = anchorPane; // Set the AnchorPane for your board
     }
 
     public void updateGrid(boolean isBoardHidden) {
@@ -21,14 +35,18 @@ public class BoardHandler extends BoardBase {
     }
 
     private void clearBoard() {
-        getAnchorPane().getChildren().clear();
+        if (anchorPane != null) {
+            anchorPane.getChildren().clear();
+        }
     }
 
     private void drawGrid(boolean isBoardHidden) {
         for (int row = 0; row < getGridSize(); row++) {
             for (int col = 0; col < getGridSize(); col++) {
                 Pane cell = createCell(row, col, isBoardHidden);
-                getAnchorPane().getChildren().add(cell);
+                if (anchorPane != null) {
+                    anchorPane.getChildren().add(cell);
+                }
             }
         }
     }
@@ -67,6 +85,24 @@ public class BoardHandler extends BoardBase {
         return "rgb(" + (int) (color.getRed() * 255) + "," +
                 (int) (color.getGreen() * 255) + "," +
                 (int) (color.getBlue() * 255) + ")";
+    }
+
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+        out.defaultWriteObject(); // Serialize default fields
+        out.writeObject(board);
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+        in.defaultReadObject(); // Deserialize default fields
+        // Ensure anchorPane is set
+        if (this.anchorPane == null) {
+            this.anchorPane = new AnchorPane();  // Or set it based on game context
+        }
+
+        updateGrid(false); // Rebuild the UI after deserialization
     }
 
     /**
@@ -141,5 +177,18 @@ public class BoardHandler extends BoardBase {
     public boolean isWithinBounds(int row, int col) {
         int gridSize = getGridSize();
         return row >= 0 && row < gridSize && col >= 0 && col < gridSize;
+    }
+
+    public void setBoard(ArrayList<ArrayList<Integer>> newBoard, AnchorPane anchorPane) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                setCell(i, j, newBoard.get(i).get(j));
+            }
+
+        }
+        printBoard();
+        this.anchorPane = anchorPane;
+        // Ensure the grid is updated after setting the new board
+        updateGrid(false);  // Pass `true` if you want to hide the board
     }
 }
