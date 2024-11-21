@@ -68,7 +68,13 @@ public class BoardHandler extends BoardBase implements Serializable {
         } else if (tileValue == 2) {
             Pane explosionShape = createExplosionShape(20); // Radius of explosion
             cell.getChildren().add(explosionShape);
-        } else {
+        }
+        else if (tileValue == 1 && !isBoardHidden) {
+            Color tileColor = SHIP_COLOR;
+            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+
+        }
+        else {
             Color tileColor = BACKGROUND_COLOR_1;
             cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
         }
