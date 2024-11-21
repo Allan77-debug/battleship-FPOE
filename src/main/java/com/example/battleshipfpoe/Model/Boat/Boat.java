@@ -23,15 +23,17 @@ public class Boat extends Group implements BoatInterface {
     private boolean rotated = false;
 
     private boolean wasFirstMove = true;
+    private Group boatDesign;
 
 
-    public Boat(double startX, double startY, int length, boolean isHorizontal) {
+    public Boat(Group boatDesign, double startX, double startY, int length, boolean isHorizontal) {
         this.startX = startX;
         this.startY = startY;
         this.length = length;
-        this.isHorizontal = isHorizontal;
+        this.isHorizontal = true;
+        this.boatDesign = boatDesign;
         // Call placeBoat to initialize the boat
-        placeBoat(startX, startY, length, isHorizontal);
+        placeBoat(boatDesign, startX, startY, length, isHorizontal);
 
         setupInteractions();
     }
@@ -39,26 +41,16 @@ public class Boat extends Group implements BoatInterface {
 
 
     @Override
-    public void placeBoat(double startX, double startY, int length, boolean isHorizontal) {
-        // Loop to create the boat's squares based on its length
-            for (int i = 0; i < length; i++) {
-                // Create a rectangle for each square of the boat
-                Rectangle rect = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
-                rect.setFill(Color.LIGHTGREEN);
-                rect.setStroke(Color.BLACK);
+    public void placeBoat(Group boatDesign, double startX, double startY, int length, boolean isHorizontal) {
 
-                // Position each rectangle based on whether the boat is horizontal or vertical
-                if (isHorizontal) {
-                    rect.setLayoutX(i * SQUARE_SIZE); // Offset each square horizontally
-                    rect.setLayoutY(0); // Keep Y constant for horizontal
-                } else {
-                    rect.setLayoutX(0); // Keep X constant for vertical
-                    rect.setLayoutY(i * SQUARE_SIZE); // Offset each square vertically
-                }
 
-                // Add each square to the Group
-                getChildren().add(rect);
-            }
+        if(isHorizontal){
+            boatDesign.setRotate(-90);
+        }
+
+        // Añadir al Group del barco
+        getChildren().clear(); // Asegurarse de limpiar cualquier contenido previo
+        getChildren().add(boatDesign);
 
             // Set the initial position of the boat
             setLayoutX(startX);
@@ -157,11 +149,22 @@ public class Boat extends Group implements BoatInterface {
 
     public void rotate() {
         rotated = !rotated;
-
         isHorizontal = !isHorizontal;
 
-        this.getChildren().clear();
-        placeBoat(getLayoutX(), getLayoutY(), length, isHorizontal);
+        // Al rotar, se ajusta la posición del barco para que quede debajo del mouse
+        double currentX = getLayoutX();
+        double currentY = getLayoutY();
+
+        boatDesign.setRotate(rotated ? 0 : 90); // Rotar 90 grados si es horizontal, sino vertical
+
+        // Recalcular la posición del barco después de la rotación
+        placeBoat(boatDesign, currentX, currentY, length, isHorizontal);
+
+        // Se asegura de que el barco quede alineado correctamente después de la rotación
+        double offsetX = currentX - getLayoutX();
+        double offsetY = currentY - getLayoutY();
+        setLayoutX(currentX - offsetX);
+        setLayoutY(currentY - offsetY);
 
         System.out.println("--------");
         boardHandler.printBoard();
