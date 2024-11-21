@@ -53,10 +53,7 @@ public class MenuController implements Initializable {
         initializeBoard();
         BoatVisuals visuals = new BoatVisuals();
 
-        Boat boat2 = new Boat(20, 100, 2, true);
-        Boat boat3 = new Boat(20, 200, 3, true);
-        addBoatToPane(boat2);
-        addBoatToPane(boat3);
+        addPlayerBoatsToPane();
     }
 
     private void initializeBoard() {
@@ -75,6 +72,44 @@ public class MenuController implements Initializable {
         BoatPane.getChildren().add(boat);
         boat.setBoardHandler(boardHandler);
         boat.requestFocus();
+    }
+
+    private void addPlayerBoatsToPane() {
+        // Definición de los tamaños de los barcos
+        int[] shipSizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1}; // 1 portaaviones, 2 submarinos, 3 destructores, 4 fragatas
+
+        // Posiciones iniciales para barcos grandes
+        double startX = 20; // Posición inicial X para barcos grandes
+        double startY = 20; // Posición inicial Y para barcos grandes
+        double offsetY = 80; // Espaciado vertical entre barcos grandes
+
+        // Posiciones iniciales para barcos pequeños (en cuadrícula)
+        double smallBoatStartX = 300; // Posición inicial X para cuadrícula de barcos pequeños
+        double smallBoatStartY = 20; // Posición inicial Y para cuadrícula de barcos pequeños
+        double smallBoatOffsetX = 60; // Espaciado horizontal entre barcos pequeños
+        double smallBoatOffsetY = 60; // Espaciado vertical entre barcos pequeños
+
+        int smallBoatCount = 0; // Contador para los barcos pequeños
+
+        for (int i = 0; i < shipSizes.length; i++) {
+            int size = shipSizes[i];
+
+            // Crear un barco con tamaño `size` y orientación horizontal inicial
+            Boat boat;
+            if (size == 1) {
+                // Colocar los barcos pequeños en una cuadrícula
+                double x = smallBoatStartX + (smallBoatCount % 2) * smallBoatOffsetX;
+                double y = smallBoatStartY + (smallBoatCount / 2) * smallBoatOffsetY;
+                boat = new Boat(x, y, size, true);
+                smallBoatCount++;
+            } else {
+                // Colocar los barcos grandes verticalmente
+                boat = new Boat(startX, startY + i * offsetY, size, true);
+            }
+
+            // Agregar el barco al Pane
+            addBoatToPane(boat);
+        }
     }
 
     private void snapToGrid(Boat boat, MouseEvent event, double[] initialPosition) {
