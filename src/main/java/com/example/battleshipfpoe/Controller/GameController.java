@@ -2,7 +2,6 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
-import com.example.battleshipfpoe.Model.List.ArrayList;
 import com.example.battleshipfpoe.Model.SaveSystem.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -27,20 +26,18 @@ public class GameController {
 
     private int playerCount = 0;
     private int enemyCount = 0;
-    private List<Boat> PlayerList;
-
 
     private boolean isBoardRevealed = false;
     private boolean isEnemyTurn = false;
 
     private boolean endGame = false;
 
-
     public void initialize() {
         SaveInterface<GameProgress> serializedHandler = new SerializedSaveHandler<>();
         SaveSystem<GameProgress> saveSystem = new SaveSystem<>(serializedHandler);
         gameStateManager = new GameStateManager(saveSystem);
     }
+
     public void setBoatsList(List<Boat> boatsList) {
         for (Boat boat : boatsList) {
             placeBoat(boat);
@@ -62,8 +59,6 @@ public class GameController {
             System.out.println("Could not place the boat at (" + row + ", " + col + ")");
         }
     }
-
-    // Check if the boat can be placed
     private boolean canPlaceBoat(int row, int col, int boatLength, boolean isHorizontal) {
         return playerBoardHandler.canPlaceShip(row, col, boatLength, isHorizontal);
     }
@@ -84,7 +79,7 @@ public class GameController {
      */
     private void placeEnemyShipsRandomly() {
         Random rand = new Random();
-        int[] shipSizes = {5, 4, 3, 3, 2}; // Tamaños de barcos
+        int[] shipSizes = {4, 3, 3, 2}; // Tamaños de barcos
 
         for (int size : shipSizes) {
             boolean placed = false;
@@ -145,11 +140,10 @@ public class GameController {
             handler.registerMiss(row, col);
             System.out.println("¡Fallaste!");
         }
-        handler.printBoard();
+
         handler.updateGrid(true);
         isEnemyTurn = true; // Cambia al turno de la máquina
         checkForEndGame();
-        saveGameState();
         setupCellInteractions();
     }
 
@@ -185,7 +179,6 @@ public class GameController {
 
         isEnemyTurn = false; // Cambia al turno del jugador
         checkForEndGame();
-        saveGameState();
         setupCellInteractions();
     }
 
@@ -196,11 +189,9 @@ public class GameController {
         if (playerCount == 0 || enemyCount == 0) {
             endGame = true;
             System.out.println("¡Juego Terminado! " + (playerCount == 0 ? "La máquina ganó." : "¡Ganaste!"));
-
-            // Save the current game state
         }
+        saveGameState();
     }
-
 
     /**
      * Maneja el evento de revelar el tablero del enemigo.
@@ -211,27 +202,7 @@ public class GameController {
         System.out.println("Tablero revelado: " + (isBoardRevealed ? "Visible" : "Oculto"));
     }
 
-    public void setPlayerList(List<Boat> playerList) {
-        this.PlayerList = playerList;
-    }
 
-    public List<Boat> getPlayerList(List<Boat> playerList) {
-        return PlayerList;
-    }
-
-    public void newGameState() {
-        double planeWidth = 400;
-        double planeHeight = 400;
-        int gridSize = 10;
-
-        this.playerBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, PlayerBoardPane);
-        playerBoardHandler.updateGrid(false);
-
-        this.enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
-        enemyBoardHandler.updateGrid(true);
-        // Place enemy ships
-        placeEnemyShipsRandomly();
-    }
     public void saveGameState() {
         GameProgress gameProgress = new GameProgress(
                 playerBoardHandler,
@@ -245,6 +216,20 @@ public class GameController {
         );
         gameStateManager.saveGame(gameProgress,saveFilePath);
     }
+    public void newGameState() {
+        double planeWidth = 400;
+        double planeHeight = 400;
+        int gridSize = 10;
+
+        this.playerBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, PlayerBoardPane);
+        playerBoardHandler.updateGrid(false);
+
+        this.enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
+        enemyBoardHandler.updateGrid(true);
+        // Place enemy ships
+        placeEnemyShipsRandomly();
+    }
+
     public void loadGameState() {
         // Load the saved game progress using GameStateManager
         GameProgress gameProgress = gameStateManager.loadGame(saveFilePath);
@@ -276,7 +261,6 @@ public class GameController {
         // Set up the board interactions again
         setupCellInteractions();
     }
-
-
-
 }
+
+

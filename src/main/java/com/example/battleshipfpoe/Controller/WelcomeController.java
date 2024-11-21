@@ -1,10 +1,12 @@
 package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.SaveSystem.*;
-import com.example.battleshipfpoe.View.MenuStage;
+import com.example.battleshipfpoe.View.PreparationStage;
+import com.example.battleshipfpoe.View.WelcomeStage;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -17,11 +19,11 @@ import java.io.IOException;
 
 public class WelcomeController {
 
+    private String saveFilePath = "gameState.ser";
+
     private Stage stage;
     private Scene scene;
     private Parent root;
-
-    private String saveFilePath = "gameState.ser";
 
     @FXML
     private Button continueGame;
@@ -31,18 +33,23 @@ public class WelcomeController {
 
     @FXML
     private Button startGame;
-
-
+    WelcomeStage menuStage;
 
     @FXML
     public void switchToMenu(ActionEvent actionEvent) throws IOException {
         // Reset the game state
-        MenuStage.deleteInstance();
-
-        MenuStage newMenuStage = MenuStage.getInstance();
-        MenuController menuController = newMenuStage.getMenuController();
+        PreparationStage.getInstance();
+        WelcomeStage.deleteInstance();
     }
 
+    public void handleMinWindow(ActionEvent event) {
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    public void handleCloseWindow(ActionEvent event) {
+        WelcomeStage.deleteInstance();
+    }
     @FXML
     private void onLoadGameButtonPressed(ActionEvent event) throws IOException {
         // Initialize Save System and GameStateManager
@@ -70,13 +77,7 @@ public class WelcomeController {
             e.printStackTrace();
             System.out.println("Failed to load the game.");
         }
-
-
-    }
-
-    private void showAlert(String title, String message, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType, message, ButtonType.OK);
-        alert.setTitle(title);
-        alert.showAndWait();
     }
 }
+
+

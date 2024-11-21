@@ -2,10 +2,14 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
+import com.example.battleshipfpoe.Model.Boat.BoatVisuals;
+import com.example.battleshipfpoe.View.GameStage;
+import com.example.battleshipfpoe.View.PreparationStage;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,6 +33,11 @@ public class MenuController implements Initializable {
     final boolean[] initialOrientation = new boolean[1];
 
 
+    PreparationStage preparationStage;
+    private boolean wasSnapped = false; // Nueva variable
+
+
+
 
     @FXML
     private Pane BoatPane;
@@ -42,6 +51,7 @@ public class MenuController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeBoard();
+        BoatVisuals visuals = new BoatVisuals();
 
         Boat boat2 = new Boat(20, 100, 2, true);
         Boat boat3 = new Boat(20, 200, 3, true);
@@ -82,51 +92,46 @@ public class MenuController implements Initializable {
             boat.setWasFirstMove(false);
             isPositionValid = true;
             isSnapped = true;
-            boat.clearBoatPosition(boardHandler);
 
-            // Snap the boat to the new grid position
+            // Si ya estaba snappeado y cambió de orientación, limpiar posición previa
+            if (wasSnapped && boat.isRotated() != initialOrientation[0]) {
+                boat.clearBoatPosition(boardHandler, initialOrientation[0]); // Borra usando orientación previa
+            }
+
+            // Snap a la nueva posición
             boat.setLayoutX(col * tileWidth);
             boat.setLayoutY(row * tileHeight);
 
-            // Update the board matrix with the new position of the boat
+            // Actualizar la posición en el tablero
             boat.storePosition(row, col);
             boatPositionsMap.put(boat, new int[]{row, col});
             boat.updateBoatPosition(boardHandler);
 
-            // Add the boat to the pane if it's not already there
             if (!BoardPane.getChildren().contains(boat)) {
                 BoardPane.getChildren().add(boat);
             }
 
             boat.toFront();
+            wasSnapped = true;
             return;
         }
 
-        // Si la colocación es inválida, revertir al estado original y limpiar la posición en la matriz
-        if (!ValidPlacement(boat, col, row)) {
-            // Restaurar posición y orientación inicial
-            boat.setLayoutX(initialPosition[0]);
-            boat.setLayoutY(initialPosition[1]);
+        // Colocación inválida, revertir
+        boat.setLayoutX(initialPosition[0]);
+        boat.setLayoutY(initialPosition[1]);
 
-            if (boat.isRotated() != initialOrientation[0]) {
-                boat.rotate(); // Cambia de orientación si fue rotado durante el movimiento
-            }
-
-            isPositionValid = false;
-            isSnapped = false;
-
-            if (!boat.isWasFirstMove()) {
-                boat.updateBoatPosition(boardHandler);
-            }
-            return;
+        if (boat.isRotated() != initialOrientation[0]) {
+            boat.rotate();
         }
 
+        isPositionValid = false;
+        isSnapped = false;
 
-        // Si el barco regresa a su posición inicial y nunca se colocó, marcar como no movido
-        if (boat.getLayoutX() == boardX && boat.getLayoutY() ==boardY) {
-            boat.setWasFirstMove(true);
+        if (!boat.isWasFirstMove()) {
+            boat.updateBoatPosition(boardHandler);
         }
     }
+
 
     private void setupDragAndDrop(Boat boat) {
         final double[] initialPosition = new double[2];
@@ -144,12 +149,14 @@ public class MenuController implements Initializable {
             mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
             boat.toFront();
             boat.requestFocus(); // Asegura que el barco recibe el enfoque
-            boat.clearBoatPosition(boardHandler);
+            boat.clearBoatPosition(boardHandler, initialOrientation[0]);
+            boardHandler.printBoard();
         });
 
         boat.setOnMouseDragged(event -> {
             double newX = event.getSceneX() - mouseOffset[0];
             double newY = event.getSceneY() - mouseOffset[1];
+
             boat.setLayoutX(newX);
             boat.setLayoutY(newY);
             boat.toFront();
@@ -172,6 +179,9 @@ public class MenuController implements Initializable {
             snapToGrid(boat, event, initialPosition);
 
             boat.toFront();
+            System.out.println("-------------------");
+            System.out.println(isPositionValid);
+            boardHandler.printBoard();
             beingDragged = false;
         });
 
@@ -215,27 +225,21 @@ public class MenuController implements Initializable {
 
 
     public void handleNextButton(ActionEvent event) {
-        System.out.println("-------END OF SETTING BOATS-------");
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/game-view.fxml"));
-            Parent root = loader.load();
+            // Obtener la instancia única de PreparationStage
 
-            GameController gameController = loader.getController();
-            gameController.newGameState();
-            // Pass the list of Boat objects to the GameController
+
+            // Pasar la lista de barcos al controlador de GameController
+            GameStage.getInstance();
+            GameStage.getInstance().getGameController().newGameState();
             List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
+            GameStage.getInstance().getGameController().setBoatsList(boatsList);
+            PreparationStage.deleteInstance();
 
-            // Pass the list of boats to the GameController
-            gameController.setBoatsList(boatsList);
 
-            gameController.saveGameState();
-
-            Scene scene = new Scene(root);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
