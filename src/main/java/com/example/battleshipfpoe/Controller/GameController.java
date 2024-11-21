@@ -69,7 +69,7 @@ public class GameController {
      */
     private void placeEnemyShipsRandomly() {
         Random rand = new Random();
-        int[] shipSizes = {4, 3, 3, 2}; // Tamaños de barcos
+        int[] shipSizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1}; // Tamaños de barcos
 
         for (int size : shipSizes) {
             boolean placed = false;
