@@ -51,7 +51,7 @@ public class GameController {
             int col = position[1];
             boolean isHorizontal = boat.isHorizontal();
 
-            // Usa el método actualizado de BoardHandler
+
             if (PlayerHandler.canPlaceShip(row, col, boat.getLength(), isHorizontal)) {
                 PlayerHandler.placeShip(row, col, boat.getLength(), isHorizontal);
                 playerCount += boat.getLength(); // Actualiza el contador total de celdas ocupadas por barcos
@@ -69,7 +69,7 @@ public class GameController {
      */
     private void placeEnemyShipsRandomly() {
         Random rand = new Random();
-        int[] shipSizes = {5, 4, 3, 3, 2}; // Tamaños de barcos
+        int[] shipSizes = {4, 3, 3, 2}; // Tamaños de barcos
 
         for (int size : shipSizes) {
             boolean placed = false;
