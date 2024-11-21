@@ -134,6 +134,7 @@ public class Boat extends Group implements BoatInterface {
 
     private void setupInteractions() {
         this.setOnMousePressed(event -> {
+            this.requestFocus(); // Obtener el foco cuando se haga clic en el barco
             this.setUserData(new double[]{
                     event.getSceneX() - this.getLayoutX(),
                     event.getSceneY() - this.getLayoutY()
