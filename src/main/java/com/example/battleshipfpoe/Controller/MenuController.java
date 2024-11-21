@@ -56,6 +56,7 @@ public class MenuController implements Initializable {
         BoatVisuals.Destroyer destroyer = visuals.new Destroyer();
         BoatVisuals.Aircraft aircraft = visuals.new Aircraft();
 
+/*
         Boat boat1= new Boat(caravel.CaravelDrawer(),20, -100, 1, true);
         Boat boat2= new Boat(submarine.SubmarineDrawer(),20, 100, 3, true);
         Boat boat3 = new Boat(destroyer.DestroyerDrawer(), 20, 200, 2, true);
@@ -63,11 +64,60 @@ public class MenuController implements Initializable {
         addBoatToPane(boat1);
         addBoatToPane(boat2);
         addBoatToPane(boat3);
-        addBoatToPane(boat4);
+        addBoatToPane(boat4);*/
 
 
-        addPlayerBoatsToPane();
+        // Separación entre los barcos
+        int horizontalSpacing = 80; // Espaciado horizontal entre barcos
+        int verticalSpacing = 100;  // Espaciado vertical entre filas
+
+        // Crear Fragatas
+        ArrayList<Boat> fragates = new ArrayList<>();
+
+        int firstBoatXPosition = -40;
+        int firstBoatYPosition = -140;
+
+        // Creación de Fragatas con espaciado horizontal
+        for (int i = 0; i < 4; i++) {
+            fragates.add(new Boat(caravel.CaravelDrawer(),firstBoatXPosition +  horizontalSpacing, firstBoatYPosition, 1, true));
+        }
+
+        ArrayList<Boat> destroyers = new ArrayList<>();
+
+        // Creación de Destroyers con espaciado horizontal
+        for (int i = 0; i < 3; i++) {
+            destroyers.add(new Boat(destroyer.DestroyerDrawer(),firstBoatXPosition +  (horizontalSpacing - 10), firstBoatYPosition + verticalSpacing + 10, 2, true));
+        }
+
+        ArrayList<Boat> submarines = new ArrayList<>();
+
+        // Creación de Submarines con espaciado horizontal
+        for (int i = 0; i < 2; i++) {
+            submarines.add(new Boat(submarine.SubmarineDrawer(),firstBoatXPosition + (horizontalSpacing -3), firstBoatYPosition + ((2 * verticalSpacing) - 30), 3, true));
+        }
+
+        Boat aircraftBoat = new Boat(aircraft.AircraftDrawer(), firstBoatXPosition + horizontalSpacing - 220, firstBoatYPosition + 270, 4, true);
+
+
+        // Añadir Fragatas al panel
+        for (Boat fragate : fragates) {
+            addBoatToPane(fragate);
+        }
+
+        // Añadir Destroyers al panel
+        for (Boat destroyerBoat : destroyers) {
+            addBoatToPane(destroyerBoat);
+        }
+
+        // Añadir Submarines al panel
+        for (Boat submarineBoat : submarines) {
+            addBoatToPane(submarineBoat);
+        }
+
+        addBoatToPane(aircraftBoat);
+
     }
+
 
     private void initializeBoard() {
         double planeWidth = 600;
@@ -88,43 +138,6 @@ public class MenuController implements Initializable {
     }
 
 
-    private void addPlayerBoatsToPane() {
-        // Definición de los tamaños de los barcos
-        int[] shipSizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1}; // 1 portaaviones, 2 submarinos, 3 destructores, 4 fragatas
-
-        // Posiciones iniciales para barcos grandes
-        double startX = 20; // Posición inicial X para barcos grandes
-        double startY = 20; // Posición inicial Y para barcos grandes
-        double offsetY = 80; // Espaciado vertical entre barcos grandes
-
-        // Posiciones iniciales para barcos pequeños (en cuadrícula)
-        double smallBoatStartX = 300; // Posición inicial X para cuadrícula de barcos pequeños
-        double smallBoatStartY = 20; // Posición inicial Y para cuadrícula de barcos pequeños
-        double smallBoatOffsetX = 60; // Espaciado horizontal entre barcos pequeños
-        double smallBoatOffsetY = 60; // Espaciado vertical entre barcos pequeños
-
-        int smallBoatCount = 0; // Contador para los barcos pequeños
-
-        for (int i = 0; i < shipSizes.length; i++) {
-            int size = shipSizes[i];
-
-            // Crear un barco con tamaño `size` y orientación horizontal inicial
-            Boat boat;
-            if (size == 1) {
-                // Colocar los barcos pequeños en una cuadrícula
-                double x = smallBoatStartX + (smallBoatCount % 2) * smallBoatOffsetX;
-                double y = smallBoatStartY + (smallBoatCount / 2) * smallBoatOffsetY;
-                boat = new Boat(x, y, size, true);
-                smallBoatCount++;
-            } else {
-                // Colocar los barcos grandes verticalmente
-                boat = new Boat(startX, startY + i * offsetY, size, true);
-            }
-
-            // Agregar el barco al Pane
-            addBoatToPane(boat);
-        }
-    }
 
     private void snapToGrid(Boat boat, MouseEvent event, double[] initialPosition) {
         double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
