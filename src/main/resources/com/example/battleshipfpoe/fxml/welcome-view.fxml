@@ -24,7 +24,7 @@
                </light>
             </Lighting>
          </effect></Button>
-      <Button fx:id="continueGame" layoutX="410.0" layoutY="452.0" mnemonicParsing="false" prefHeight="64.0" prefWidth="299.0" styleClass="welcome-button" text="Continue Game">
+      <Button fx:id="continueGame" layoutX="410.0" layoutY="452.0" mnemonicParsing="false" onAction="#onLoadGameButtonPressed" prefHeight="64.0" prefWidth="299.0" styleClass="welcome-button" text="Continue Game">
          <font>
             <Font name="Microsoft JhengHei Light" size="13.0" />
          </font></Button>

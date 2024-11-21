@@ -50,6 +50,7 @@ public class MenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeBoard();
         BoatVisuals visuals = new BoatVisuals();
+
         BoatVisuals.Caravel caravel = visuals.new Caravel();
         BoatVisuals.Submarine submarine = visuals.new Submarine();
         BoatVisuals.Destroyer destroyer = visuals.new Destroyer();
@@ -63,6 +64,9 @@ public class MenuController implements Initializable {
         addBoatToPane(boat2);
         addBoatToPane(boat3);
         addBoatToPane(boat4);
+
+
+        addPlayerBoatsToPane();
     }
 
     private void initializeBoard() {
@@ -82,6 +86,46 @@ public class MenuController implements Initializable {
         boat.setBoardHandler(boardHandler);
         boat.requestFocus();
     }
+
+
+    private void addPlayerBoatsToPane() {
+        // Definición de los tamaños de los barcos
+        int[] shipSizes = {4, 3, 3, 2, 2, 2, 1, 1, 1, 1}; // 1 portaaviones, 2 submarinos, 3 destructores, 4 fragatas
+
+        // Posiciones iniciales para barcos grandes
+        double startX = 20; // Posición inicial X para barcos grandes
+        double startY = 20; // Posición inicial Y para barcos grandes
+        double offsetY = 80; // Espaciado vertical entre barcos grandes
+
+        // Posiciones iniciales para barcos pequeños (en cuadrícula)
+        double smallBoatStartX = 300; // Posición inicial X para cuadrícula de barcos pequeños
+        double smallBoatStartY = 20; // Posición inicial Y para cuadrícula de barcos pequeños
+        double smallBoatOffsetX = 60; // Espaciado horizontal entre barcos pequeños
+        double smallBoatOffsetY = 60; // Espaciado vertical entre barcos pequeños
+
+        int smallBoatCount = 0; // Contador para los barcos pequeños
+
+        for (int i = 0; i < shipSizes.length; i++) {
+            int size = shipSizes[i];
+
+            // Crear un barco con tamaño `size` y orientación horizontal inicial
+            Boat boat;
+            if (size == 1) {
+                // Colocar los barcos pequeños en una cuadrícula
+                double x = smallBoatStartX + (smallBoatCount % 2) * smallBoatOffsetX;
+                double y = smallBoatStartY + (smallBoatCount / 2) * smallBoatOffsetY;
+                boat = new Boat(x, y, size, true);
+                smallBoatCount++;
+            } else {
+                // Colocar los barcos grandes verticalmente
+                boat = new Boat(startX, startY + i * offsetY, size, true);
+            }
+
+            // Agregar el barco al Pane
+            addBoatToPane(boat);
+        }
+    }
+
     private void snapToGrid(Boat boat, MouseEvent event, double[] initialPosition) {
         double boardX = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinX();
         double boardY = BoardPane.localToScene(BoardPane.getBoundsInLocal()).getMinY();
@@ -298,6 +342,7 @@ public class MenuController implements Initializable {
 
             // Pasar la lista de barcos al controlador de GameController
             GameStage.getInstance();
+            GameStage.getInstance().getGameController().newGameState();
             List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
             GameStage.getInstance().getGameController().setBoatsList(boatsList);
             PreparationStage.deleteInstance();
