@@ -1,9 +1,9 @@
 package com.example.battleshipfpoe.Controller;
 
-import com.example.battleshipfpoe.View.MenuStage;
+import com.example.battleshipfpoe.View.PreparationStage;
+import com.example.battleshipfpoe.View.WelcomeStage;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -11,7 +11,6 @@ import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Objects;
 
 
 public class WelcomeController {
@@ -28,13 +27,21 @@ public class WelcomeController {
 
     @FXML
     private Button startGame;
+    WelcomeStage menuStage;
 
     @FXML
     public void switchToMenu(ActionEvent actionEvent) throws IOException {
         // Reset the game state
-        MenuStage.deleteInstance();
+        PreparationStage.getInstance();
+        WelcomeStage.deleteInstance();
+    }
 
-        MenuStage newMenuStage = MenuStage.getInstance();
-        MenuController menuController = newMenuStage.getMenuController();
+    public void handleMinWindow(ActionEvent event) {
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    public void handleCloseWindow(ActionEvent event) {
+        WelcomeStage.deleteInstance();
     }
 }

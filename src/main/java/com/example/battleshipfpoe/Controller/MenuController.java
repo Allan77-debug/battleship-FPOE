@@ -2,6 +2,8 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
+import com.example.battleshipfpoe.View.GameStage;
+import com.example.battleshipfpoe.View.PreparationStage;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -27,6 +29,8 @@ public class MenuController implements Initializable {
     boolean isSnapped;
     boolean beingDragged;
     final boolean[] initialOrientation = new boolean[1];
+
+    PreparationStage preparationStage;
 
 
 
@@ -220,23 +224,19 @@ public class MenuController implements Initializable {
 
     public void handleNextButton(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/game-view.fxml"));
-            Parent root = loader.load();
+            // Obtener la instancia única de PreparationStage
 
-            GameController gameController = loader.getController();
 
-            // Pass the list of Boat objects to the GameController
+            // Pasar la lista de barcos al controlador de GameController
+            GameStage.getInstance();
             List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
+            GameStage.getInstance().getGameController().setBoatsList(boatsList);
+            PreparationStage.deleteInstance();
 
-            // Pass the list of boats to the GameController
-            gameController.setBoatsList(boatsList);
 
-            Scene scene = new Scene(root);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
