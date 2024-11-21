@@ -13,7 +13,6 @@ public abstract class BoardBase {
     private final int tilesDown;
     private final AnchorPane anchorPane;
     private final ArrayList<ArrayList<Integer>> board;
-
     /**
      * Constructs a BoardBase object with the given parameters.
      *

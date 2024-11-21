@@ -7,6 +7,7 @@ import javafx.scene.Group;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
@@ -23,12 +24,12 @@ public class Boat extends Group implements BoatInterface {
 
     private boolean wasFirstMove = true;
 
+
     public Boat(double startX, double startY, int length, boolean isHorizontal) {
         this.startX = startX;
         this.startY = startY;
         this.length = length;
         this.isHorizontal = isHorizontal;
-
         // Call placeBoat to initialize the boat
         placeBoat(startX, startY, length, isHorizontal);
 
@@ -40,52 +41,54 @@ public class Boat extends Group implements BoatInterface {
     @Override
     public void placeBoat(double startX, double startY, int length, boolean isHorizontal) {
         // Loop to create the boat's squares based on its length
-        for (int i = 0; i < length; i++) {
-            // Create a rectangle for each square of the boat
-            Rectangle rect = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
-            rect.setFill(Color.LIGHTGREEN);
-            rect.setStroke(Color.BLACK);
+            for (int i = 0; i < length; i++) {
+                // Create a rectangle for each square of the boat
+                Rectangle rect = new Rectangle(SQUARE_SIZE, SQUARE_SIZE);
+                rect.setFill(Color.LIGHTGREEN);
+                rect.setStroke(Color.BLACK);
 
-            // Position each rectangle based on whether the boat is horizontal or vertical
-            if (isHorizontal) {
-                rect.setLayoutX(i * SQUARE_SIZE); // Offset each square horizontally
-                rect.setLayoutY(0); // Keep Y constant for horizontal
-            } else {
-                rect.setLayoutX(0); // Keep X constant for vertical
-                rect.setLayoutY(i * SQUARE_SIZE); // Offset each square vertically
+                // Position each rectangle based on whether the boat is horizontal or vertical
+                if (isHorizontal) {
+                    rect.setLayoutX(i * SQUARE_SIZE); // Offset each square horizontally
+                    rect.setLayoutY(0); // Keep Y constant for horizontal
+                } else {
+                    rect.setLayoutX(0); // Keep X constant for vertical
+                    rect.setLayoutY(i * SQUARE_SIZE); // Offset each square vertically
+                }
+
+                // Add each square to the Group
+                getChildren().add(rect);
             }
 
-            // Add each square to the Group
-            getChildren().add(rect);
+            // Set the initial position of the boat
+            setLayoutX(startX);
+            setLayoutY(startY);
+            toFront(); // Ensure the boat is at the front of the scene
         }
 
-        // Set the initial position of the boat
-        setLayoutX(startX);
-        setLayoutY(startY);
-        toFront(); // Ensure the boat is at the front of the scene
-    }
 
     public void storePosition(int row, int col) {
         this.currentRow = row;
         this.currentCol = col;
         System.out.println("Snapped at row: " + currentRow + ", col: " + currentCol);
     }
-
-    public void clearBoatPosition(BoardHandler boardHandler) {
+    public void clearBoatPosition(BoardHandler boardHandler, boolean previousOrientation) {
         if (currentRow == -1 || currentCol == -1) {
             return;
         }
-        // Borra la posición actual del barco
-        if (!rotated) {
+
+        // Limpiar según la orientación previa
+        if (!previousOrientation) { // Horizontal
             for (int i = 0; i < length; i++) {
-                boardHandler.setCell(currentRow, currentCol + i, 0); // Borra en horizontal
+                boardHandler.setCell(currentRow, currentCol + i, 0);
             }
-        } else if(rotated) {
-        for (int i = 0; i < length; i++) {
-            boardHandler.setCell(currentRow + i, currentCol, 0); // Borra en vertical
+        } else { // Vertical
+            for (int i = 0; i < length; i++) {
+                boardHandler.setCell(currentRow + i, currentCol, 0);
+            }
         }
     }
-}
+
 
     public void updateBoatPosition(BoardHandler boardHandler) {
         for (int i = 0; i < length; i++) {
@@ -131,6 +134,7 @@ public class Boat extends Group implements BoatInterface {
 
     private void setupInteractions() {
         this.setOnMousePressed(event -> {
+            this.requestFocus(); // Obtener el foco cuando se haga clic en el barco
             this.setUserData(new double[]{
                     event.getSceneX() - this.getLayoutX(),
                     event.getSceneY() - this.getLayoutY()
