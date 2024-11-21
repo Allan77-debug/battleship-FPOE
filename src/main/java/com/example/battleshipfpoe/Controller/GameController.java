@@ -2,7 +2,6 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
-import com.example.battleshipfpoe.Model.List.ArrayList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
@@ -16,16 +15,16 @@ public class GameController {
     @FXML
     private AnchorPane PlayerBoardPane;
     @FXML
-    private AnchorPane enemyBoardPane; // Tablero del enemigo
+    private AnchorPane enemyBoardPane;
 
     private BoardHandler PlayerHandler;
     private BoardHandler enemyBoardHandler;
 
-    private int playerCount;
-    private int enemyCount;
+    private int playerCount = 0;
+    private int enemyCount = 0;
 
-    private boolean isBoardRevealed;
-    private boolean isEnemyTurn = true;
+    private boolean isBoardRevealed = false;
+    private boolean isEnemyTurn = false;
 
     private boolean endGame = false;
 
@@ -34,72 +33,80 @@ public class GameController {
         double planeHeight = 400;
         int gridSize = 10;
 
+        // Inicializar los tableros de jugador y enemigo
         PlayerHandler = new BoardHandler(planeWidth, planeHeight, gridSize, PlayerBoardPane);
         PlayerHandler.updateGrid(false);
 
         enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
         enemyBoardHandler.updateGrid(true);
-        isBoardRevealed = false;
+
+        // Colocar barcos de la máquina
         placeEnemyShipsRandomly();
     }
 
+    /**
+     * Coloca los barcos del jugador en el tablero.
+     */
     public void setBoatsList(List<Boat> boatsList) {
-        // Iterate over each boat in the list
         for (Boat boat : boatsList) {
-            int[] position = boat.getPosition();  // Get the boat's position (row, col)
+            int[] position = boat.getPosition(); //Get the boat's position (row, col)
             int row = position[0];
             int col = position[1];
+            boolean isHorizontal = boat.isHorizontal();
 
-            // Place the boat on the grid depending on its orientation
-            if (boat.isHorizontal()) {
-                for (int i = 0; i < boat.getLength(); i++) {
-                    PlayerHandler.placeShip(row, col + i);  // Place each cell for horizontal boat
-                    playerCount++;
-                }
+            // Usa el método actualizado de BoardHandler
+            if (PlayerHandler.canPlaceShip(row, col, boat.getLength(), isHorizontal)) {
+                PlayerHandler.placeShip(row, col, boat.getLength(), isHorizontal);
+                playerCount += boat.getLength(); // Actualiza el contador total de celdas ocupadas por barcos
             } else {
-                for (int i = 0; i < boat.getLength(); i++) {
-                    PlayerHandler.placeShip(row + i, col);  // Place each cell for vertical boat
-                    playerCount++;
-                }
+                System.out.println("No se pudo colocar el barco en (" + row + ", " + col + ")");
             }
         }
 
-        // After placing all boats, update the grid
-        PlayerHandler.updateGrid(false);
-        setupCellInteractions();  // Ensure all cells are interactive
+        PlayerHandler.updateGrid(false); // Actualiza el tablero después de colocar los barcos
+        setupCellInteractions(); // Configura las interacciones de las celdas
     }
 
-
-
+    /**
+     * Coloca los barcos de la máquina de forma aleatoria.
+     */
     private void placeEnemyShipsRandomly() {
         Random rand = new Random();
-        int numShips = 2; // Número de barcos a colocar
+        int[] shipSizes = {4, 3, 3, 2}; // Tamaños de barcos
 
-        // Obtén la matriz de celdas del tablero enemigo
-        ArrayList<ArrayList<Integer>> enemyGrid = enemyBoardHandler.getBoard();
+        for (int size : shipSizes) {
+            boolean placed = false;
 
-        for (int i = 0; i < numShips; i++) {
-            int x = rand.nextInt(enemyBoardHandler.getGridSize()); // Coordenada x aleatoria
-            int y = rand.nextInt(enemyBoardHandler.getGridSize()); // Coordenada y aleatoria
+            while (!placed) {
+                int startX = rand.nextInt(enemyBoardHandler.getGridSize());
+                int startY = rand.nextInt(enemyBoardHandler.getGridSize());
+                boolean horizontal = rand.nextBoolean();
 
-            // Verifica si la celda está vacía (0 representa agua)
-            if (enemyGrid.get(x).get(y) == 0) {
-                enemyGrid.get(x).set(y, 1); // 1 representa un barco
+                if (enemyBoardHandler.canPlaceShip(startX, startY, size, horizontal)) {
+                    enemyBoardHandler.placeShip(startX, startY, size, horizontal);
+                    placed = true;
+                    enemyCount += size;
+                }
+            }
         }
-            enemyCount++;
-        }
-        setupCellInteractions();
     }
 
+    /**
+     * Configura las interacciones con las celdas del tablero según el turno.
+     */
     private void setupCellInteractions() {
-        if (isEnemyTurn) {
-            setupBoardInteractions(PlayerBoardPane, PlayerHandler, false);
-        }
-        else {
+        if (endGame) return;
+
+        if (!isEnemyTurn) {
             setupBoardInteractions(enemyBoardPane, enemyBoardHandler, true);
+        } else {
+            machineTurn();
         }
     }
 
+    /**
+     * Configura las interacciones en un tablero.
+     */
     private void setupBoardInteractions(Pane boardPane, BoardHandler handler, boolean isEnemyBoard) {
         for (var node : boardPane.getChildren()) {
             if (node instanceof Pane cell) {
@@ -112,62 +119,78 @@ public class GameController {
         }
     }
 
+    /**
+     * Maneja el turno del jugador o de la máquina según el estado del juego.
+     */
     private void handleTurn(BoardHandler handler, int row, int col, boolean isEnemyBoard) {
-        if (endGame) return; // Stop if the game is over
+        if (endGame || isEnemyTurn || handler.isCellAlreadyShot(row, col)) return;
 
-        if (isEnemyTurn && !isEnemyBoard) {
-            System.out.println("Enemy's turn!");
-            if (handler.getCell(row, col) == 1) {
-                handler.registerHit(row, col);
-                playerCount--;
-                System.out.println(playerCount);
-            } else {
-                handler.registerMiss(row, col);
-            }
-            isEnemyTurn = false;
-            System.out.println("End enemy's turn");// End enemy's turn
-            handler.updateGrid(false);
+        if (handler.getCell(row, col) == 1) {
+            handler.registerHit(row, col);
+            enemyCount--;
+            System.out.println("¡Acertaste!");
+        } else {
+            handler.registerMiss(row, col);
+            System.out.println("¡Fallaste!");
         }
-        else if (!isEnemyTurn) {
-            System.out.println("Player's turn!");
-            if (handler.getCell(row, col) == 1) {
-                handler.registerHit(row, col);
-                enemyCount--;
-                System.out.println(enemyCount);
-            } else {
-                handler.registerMiss(row, col);
-            }
-            isEnemyTurn = true;
-            System.out.println("End player's turn");
-            handler.updateGrid(true);
-        }
-        else {
-            System.out.println("Invalid board clicked.");
-        }
+
+        handler.updateGrid(true);
+        isEnemyTurn = true; // Cambia al turno de la máquina
         checkForEndGame();
+        setupCellInteractions();
     }
 
+    /**
+     * Turno de la máquina para disparar aleatoriamente.
+     */
+    private void machineTurn() {
+        if (endGame) return;
+
+        Random rand = new Random();
+        boolean validShot = false;
+        int gridSize = PlayerHandler.getGridSize();
+
+        while (!validShot) {
+            int x = rand.nextInt(gridSize);
+            int y = rand.nextInt(gridSize);
+
+            if (!PlayerHandler.isCellAlreadyShot(x, y)) {
+                validShot = true;
+
+                if (PlayerHandler.getCell(x, y) == 1) {
+                    PlayerHandler.registerHit(x, y);
+                    playerCount--;
+                    System.out.println("La máquina acertó en (" + x + ", " + y + ")");
+                } else {
+                    PlayerHandler.registerMiss(x, y);
+                    System.out.println("La máquina falló en (" + x + ", " + y + ")");
+                }
+
+                PlayerHandler.updateGrid(false);
+            }
+        }
+
+        isEnemyTurn = false; // Cambia al turno del jugador
+        checkForEndGame();
+        setupCellInteractions();
+    }
+
+    /**
+     * Verifica si el juego ha terminado.
+     */
     private void checkForEndGame() {
         if (playerCount == 0 || enemyCount == 0) {
             endGame = true;
-            System.out.println("Game Over!");
-            // Add any additional game-ending logic here (e.g., disable clicks)
-        }
-        else {
-            setupCellInteractions();
-
+            System.out.println("¡Juego Terminado! " + (playerCount == 0 ? "La máquina ganó." : "¡Ganaste!"));
         }
     }
 
-
-
+    /**
+     * Maneja el evento de revelar el tablero del enemigo.
+     */
     public void handleRevealBoard(ActionEvent event) {
-        enemyBoardHandler.updateGrid(!isBoardRevealed); // Toggle between hidden and revealed
-        isBoardRevealed = !isBoardRevealed; // Flip the state
-        System.out.println("Board reveal toggled: " + (isBoardRevealed ? "Revealed" : "Hidden"));
+        enemyBoardHandler.updateGrid(!isBoardRevealed);
+        isBoardRevealed = !isBoardRevealed;
+        System.out.println("Tablero revelado: " + (isBoardRevealed ? "Visible" : "Oculto"));
     }
-
-
-
 }
-

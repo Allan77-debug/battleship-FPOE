@@ -194,7 +194,7 @@ public class MenuController implements Initializable {
             // Check if the cells for the ship's horizontal placement are available
             for (int i = 0; i < boatSize; i++) {
                 // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
+                if (boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
                     return false;
                 }
             }
@@ -208,7 +208,7 @@ public class MenuController implements Initializable {
             // Check if the cells for the ship's vertical placement are available
             for (int i = 0; i < boatSize; i++) {
                 // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
+                if (boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
                     return false;
                 }
             }
