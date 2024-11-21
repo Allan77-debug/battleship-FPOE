@@ -37,8 +37,6 @@ public class MenuController implements Initializable {
     private boolean wasSnapped = false; // Nueva variable
 
 
-
-
     @FXML
     private Pane BoatPane;
 
@@ -52,6 +50,21 @@ public class MenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeBoard();
         BoatVisuals visuals = new BoatVisuals();
+
+        BoatVisuals.Caravel caravel = visuals.new Caravel();
+        BoatVisuals.Submarine submarine = visuals.new Submarine();
+        BoatVisuals.Destroyer destroyer = visuals.new Destroyer();
+        BoatVisuals.Aircraft aircraft = visuals.new Aircraft();
+
+        Boat boat1= new Boat(caravel.CaravelDrawer(),20, -100, 1, true);
+        Boat boat2= new Boat(submarine.SubmarineDrawer(),20, 100, 3, true);
+        Boat boat3 = new Boat(destroyer.DestroyerDrawer(), 20, 200, 2, true);
+        Boat boat4 = new Boat(aircraft.AircraftDrawer(),-160, 0,4, true);
+        addBoatToPane(boat1);
+        addBoatToPane(boat2);
+        addBoatToPane(boat3);
+        addBoatToPane(boat4);
+
 
         addPlayerBoatsToPane();
     }
@@ -73,6 +86,7 @@ public class MenuController implements Initializable {
         boat.setBoardHandler(boardHandler);
         boat.requestFocus();
     }
+
 
     private void addPlayerBoatsToPane() {
         // Definición de los tamaños de los barcos
@@ -123,21 +137,63 @@ public class MenuController implements Initializable {
         int col = (int) (newX / tileWidth);
         int row = (int) (newY / tileHeight);
 
+        // Ajustar el 'snap' de acuerdo a la orientación del barco
+        if (boat.isRotated()) {
+            col = (int) (newX / tileHeight); // Invertir el cálculo para la orientación vertical
+            row = (int) (newY / tileWidth);  // Invertir el cálculo para la orientación vertical
+        }
+
+
         if (ValidPlacement(boat, col, row)) {
             boat.setWasFirstMove(false);
             isPositionValid = true;
             isSnapped = true;
+
+
 
             // Si ya estaba snappeado y cambió de orientación, limpiar posición previa
             if (wasSnapped && boat.isRotated() != initialOrientation[0]) {
                 boat.clearBoatPosition(boardHandler, initialOrientation[0]); // Borra usando orientación previa
             }
 
-            // Snap a la nueva posición
-            boat.setLayoutX(col * tileWidth);
-            boat.setLayoutY(row * tileHeight);
 
-            // Actualizar la posición en el tablero
+            switch(boat.getLength()){
+                case 1: // Actualizar la posición después de la rotación
+                    boat.setLayoutX((col * tileWidth) - 65);
+                    boat.setLayoutY((row * tileHeight) - 150);
+                    break;
+                case 2:
+                    if(boat.isHorizontal()){
+                    boat.setLayoutX((col * tileWidth) - 40);
+                    boat.setLayoutY((row * tileHeight) - 122);
+                }else{
+                    boat.setLayoutX((col * tileWidth) - 70);
+                    boat.setLayoutY((row * tileHeight) - 93);
+                }
+                    break;
+                case 3:
+                    if(boat.isHorizontal()){
+                        boat.setLayoutX((col * tileWidth) - 11);
+                        boat.setLayoutY((row * tileHeight) - 150);
+                    }else{
+                        boat.setLayoutX((col * tileWidth) - 70);
+                        boat.setLayoutY((row * tileHeight) - 93);
+                    }
+                    break;
+                case 4:
+                    if(boat.isHorizontal()){
+                        boat.setLayoutX((col * tileWidth) - 195);
+                        boat.setLayoutY((row * tileHeight) - 148);
+                    }else{
+                        boat.setLayoutX((col * tileWidth) - 288);
+                        boat.setLayoutY((row * tileHeight) - 55);
+                    }
+                    break;
+
+
+            }
+
+            // Actualizar el estado de la posición
             boat.storePosition(row, col);
             boatPositionsMap.put(boat, new int[]{row, col});
             boat.updateBoatPosition(boardHandler);
@@ -151,7 +207,7 @@ public class MenuController implements Initializable {
             return;
         }
 
-        // Colocación inválida, revertir
+        // Si la posición no es válida, revertir
         boat.setLayoutX(initialPosition[0]);
         boat.setLayoutY(initialPosition[1]);
 
@@ -172,13 +228,10 @@ public class MenuController implements Initializable {
         final double[] initialPosition = new double[2];
         final double[] mouseOffset = new double[2];
 
-
         boat.setOnMousePressed(event -> {
-
             initialPosition[0] = boat.getLayoutX();
             initialPosition[1] = boat.getLayoutY();
             initialOrientation[0] = boat.isRotated();
-
 
             mouseOffset[0] = event.getSceneX() - boat.getLayoutX();
             mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
@@ -192,27 +245,44 @@ public class MenuController implements Initializable {
             double newX = event.getSceneX() - mouseOffset[0];
             double newY = event.getSceneY() - mouseOffset[1];
 
+            // Si el barco está rotado, debes ajustar la posición
+            if (boat.isRotated()) {
+                // Calcular la nueva posición tomando en cuenta la rotación
+                newX = event.getSceneX() - mouseOffset[0];
+                newY = event.getSceneY() - mouseOffset[1];
+            }
+
             boat.setLayoutX(newX);
             boat.setLayoutY(newY);
             boat.toFront();
             beingDragged = true;
         });
 
-        // En la rotación, ajusta la posición después de la rotación y luego realiza el "snap to grid"
         boat.setOnKeyPressed(event -> {
             if (beingDragged && event.getCode() == KeyCode.R) {
+                // Guardamos la posición inicial
+                double oldX = boat.getLayoutX();
+                double oldY = boat.getLayoutY();
+
+                // Realizar la rotación
                 boat.rotate();
                 boat.setRotated(boat.isRotated());
-                boat.toFront();
+
+                // Calcular el desplazamiento del barco debido a la rotación
+                double offsetX = oldX - boat.getLayoutX();
+                double offsetY = oldY - boat.getLayoutY();
+
+                // Después de la rotación, ajustar la posición para que el barco quede bajo el clic
+                boat.setLayoutX(oldX - offsetX); // Mantener la posición en X
+                boat.setLayoutY(oldY - offsetY); // Mantener la posición en Y
+
+                boat.toFront(); // Asegurarse de que el barco quede sobre otros elementos
             }
         });
 
         boat.setOnMouseReleased(event -> {
             // Realizar la validación al soltar el barco después de arrastrarlo
-
-
             snapToGrid(boat, event, initialPosition);
-
             boat.toFront();
             System.out.println("-------------------");
             System.out.println(isPositionValid);
@@ -225,35 +295,41 @@ public class MenuController implements Initializable {
 
 
     private boolean ValidPlacement(Boat boat, int col, int row) {
-        int boatSize = boat.getChildren().size();
+        int boatSize = boat.getLength();
+
         if (!boat.isRotated()) {
-            // Horizontal ship check (ensure col + i doesn't go out of bounds)
-            if (col + boatSize - 1 >= boardHandler.getGridSize()) {
-                return false;
-            }
-
-            // Check if the cells for the ship's horizontal placement are available
-            for (int i = 0; i < boatSize; i++) {
-                // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
-                    return false;
-                }
-            }
-
+            return isValidHorizontalPlacement(col, row, boatSize) && areCellsAvailableForHorizontal(col, row, boatSize);
         } else {
-            // Vertical ship check (ensure row + i doesn't go out of bounds)
-            if (row + boatSize - 1 >= boardHandler.getGridSize()) {
+            return isValidVerticalPlacement(col, row, boatSize) && areCellsAvailableForVertical(col, row, boatSize);
+        }
+    }
+
+    private boolean isValidHorizontalPlacement(int col, int row, int boatSize) {
+        // Verificar que el barco no se desborde en la dirección horizontal
+        return col >= 0 && col + boatSize <= boardHandler.getGridSize();
+    }
+
+    private boolean isValidVerticalPlacement(int col, int row, int boatSize) {
+        // Verificar que el barco no se desborde en la dirección vertical
+        return row >= 0 && row + boatSize <= boardHandler.getGridSize();
+    }
+
+    private boolean areCellsAvailableForHorizontal(int col, int row, int boatSize) {
+        // Verificar que las celdas en la fila estén libres para el barco horizontal
+        for (int i = 0; i < boatSize; i++) {
+            if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
                 return false;
             }
+        }
+        return true;
+    }
 
-            // Check if the cells for the ship's vertical placement are available
-            for (int i = 0; i < boatSize; i++) {
-                // Use the boundary-checking method
-                if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
-                    return false;
-                }
+    private boolean areCellsAvailableForVertical(int col, int row, int boatSize) {
+        // Verificar que las celdas en la columna estén libres para el barco vertical
+        for (int i = 0; i < boatSize; i++) {
+            if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
+                return false;
             }
-
         }
         return true;
     }
