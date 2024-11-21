@@ -1,13 +1,6 @@
 
-.anchor-pane {
-    -fx-background-color: #1e1e1e; /* Color de fondo oscuro */
-    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.7), 25, 0.5, 0, 0);
-    /* innershadow(tipo, color, radio, factorDeSuavidad, offsetX, offsetY) */
-}
-
-
 .welcome-anchor {
-    -fx-background-image: url("../images/backgroundImg.jpg");
+    -fx-background-image: url("../images/menuBg.jpg");
     -fx-background-size: cover;
     -fx-background-repeat: no-repeat;
     -fx-background-color: #1e3d59; /* Azul profundo como respaldo */
@@ -44,11 +37,6 @@
     -fx-effect: dropshadow(gaussian, rgba(20, 107, 237, 0.9), 10, 0.8, 0, 0); /* Sombra más agresiva */
 }
 
-/* Animación de pulsación */
-.welcome-button:hover {
-    -fx-transform: scale(1.05); /* Escala suave al pasar el mouse */
-}
-
 .quit-button {
     -fx-background-color: linear-gradient(to bottom, #141e27, #0f161e); /* Azul metálico oscuro */
     -fx-text-fill: #f3efef; /* Letras grises para un contraste más suave */
@@ -79,8 +67,4 @@
     -fx-effect: dropshadow(gaussian, rgba(20, 107, 237, 0.9), 10, 0.8, 0, 0); /* Sombra más agresiva */
 }
 
-/* Animación de pulsación */
-.quit-button:hover {
-    -fx-transform: scale(1.05); /* Escala suave al pasar el mouse */
-}
 
