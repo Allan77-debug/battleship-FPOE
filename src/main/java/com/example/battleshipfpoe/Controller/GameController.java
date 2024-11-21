@@ -140,11 +140,11 @@ public class GameController {
             handler.registerMiss(row, col);
             System.out.println("¡Fallaste!");
         }
-
+        if (isBoardRevealed) {isBoardRevealed = false;}
         handler.updateGrid(true);
         isEnemyTurn = true; // Cambia al turno de la máquina
-        checkForEndGame();
         setupCellInteractions();
+        checkForEndGame();
     }
 
     /**
@@ -197,9 +197,10 @@ public class GameController {
      * Maneja el evento de revelar el tablero del enemigo.
      */
     public void handleRevealBoard(ActionEvent event) {
-        enemyBoardHandler.updateGrid(!isBoardRevealed);
+        enemyBoardHandler.updateGrid(isBoardRevealed);
         isBoardRevealed = !isBoardRevealed;
         System.out.println("Tablero revelado: " + (isBoardRevealed ? "Visible" : "Oculto"));
+        setupCellInteractions();
     }
 
 

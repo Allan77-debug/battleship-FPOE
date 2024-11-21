@@ -234,6 +234,7 @@ public class MenuController implements Initializable {
             GameStage.getInstance().getGameController().newGameState();
             List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
             GameStage.getInstance().getGameController().setBoatsList(boatsList);
+            GameStage.getInstance().getGameController().saveGameState();
             PreparationStage.deleteInstance();
 
 
