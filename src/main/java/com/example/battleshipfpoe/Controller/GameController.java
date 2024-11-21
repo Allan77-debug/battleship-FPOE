@@ -2,6 +2,7 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
+import com.example.battleshipfpoe.Model.SaveSystem.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
@@ -17,7 +18,10 @@ public class GameController {
     @FXML
     private AnchorPane enemyBoardPane;
 
-    private BoardHandler PlayerHandler;
+    private GameStateManager gameStateManager;
+    private String saveFilePath = "gameState.ser";
+
+    private BoardHandler playerBoardHandler;
     private BoardHandler enemyBoardHandler;
 
     private int playerCount = 0;
@@ -29,39 +33,45 @@ public class GameController {
     private boolean endGame = false;
 
     public void initialize() {
-        double planeWidth = 400;
-        double planeHeight = 400;
-        int gridSize = 10;
-
-        // Inicializar los tableros de jugador y enemigo
-        PlayerHandler = new BoardHandler(planeWidth, planeHeight, gridSize, PlayerBoardPane);
-        PlayerHandler.updateGrid(false);
-
-        enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
-        enemyBoardHandler.updateGrid(true);
-
-        // Colocar barcos de la máquina
-        placeEnemyShipsRandomly();
+        SaveInterface<GameProgress> serializedHandler = new SerializedSaveHandler<>();
+        SaveSystem<GameProgress> saveSystem = new SaveSystem<>(serializedHandler);
+        gameStateManager = new GameStateManager(saveSystem);
     }
 
     public void setBoatsList(List<Boat> boatsList) {
         for (Boat boat : boatsList) {
-            int[] position = boat.getPosition(); // Obtén la posición inicial del barco
-            int row = position[0];
-            int col = position[1];
-            boolean isHorizontal = boat.isHorizontal();
-
-
-            if (PlayerHandler.canPlaceShip(row, col, boat.getLength(), isHorizontal)) {
-                PlayerHandler.placeShip(row, col, boat.getLength(), isHorizontal);
-                playerCount += boat.getLength(); // Actualiza el contador total de celdas ocupadas por barcos
-            } else {
-                System.out.println("No se pudo colocar el barco en (" + row + ", " + col + ")");
-            }
+            placeBoat(boat);
         }
+        updateBoardState();
+    }
 
-        PlayerHandler.updateGrid(false); // Actualiza el tablero después de colocar los barcos
-        setupCellInteractions(); // Configura las interacciones de las celdas
+    // Method to handle the placement of a single boat
+    private void placeBoat(Boat boat) {
+        int[] position = boat.getPosition();
+        int row = position[0];
+        int col = position[1];
+        boolean isHorizontal = boat.isHorizontal();
+
+        if (canPlaceBoat(row, col, boat.getLength(), isHorizontal)) {
+            placeShip(row, col, boat.getLength(), isHorizontal);
+            playerCount += boat.getLength();
+        } else {
+            System.out.println("Could not place the boat at (" + row + ", " + col + ")");
+        }
+    }
+    private boolean canPlaceBoat(int row, int col, int boatLength, boolean isHorizontal) {
+        return playerBoardHandler.canPlaceShip(row, col, boatLength, isHorizontal);
+    }
+
+    // Place the boat on the grid
+    private void placeShip(int row, int col, int boatLength, boolean isHorizontal) {
+        playerBoardHandler.placeShip(row, col, boatLength, isHorizontal);
+    }
+
+    // Update the grid and setup cell interactions after placing all boats
+    private void updateBoardState() {
+        playerBoardHandler.updateGrid(false);
+        setupCellInteractions();
     }
 
     /**
@@ -145,25 +155,25 @@ public class GameController {
 
         Random rand = new Random();
         boolean validShot = false;
-        int gridSize = PlayerHandler.getGridSize();
+        int gridSize = playerBoardHandler.getGridSize();
 
         while (!validShot) {
             int x = rand.nextInt(gridSize);
             int y = rand.nextInt(gridSize);
 
-            if (!PlayerHandler.isCellAlreadyShot(x, y)) {
+            if (!playerBoardHandler.isCellAlreadyShot(x, y)) {
                 validShot = true;
 
-                if (PlayerHandler.getCell(x, y) == 1) {
-                    PlayerHandler.registerHit(x, y);
+                if (playerBoardHandler.getCell(x, y) == 1) {
+                    playerBoardHandler.registerHit(x, y);
                     playerCount--;
                     System.out.println("La máquina acertó en (" + x + ", " + y + ")");
                 } else {
-                    PlayerHandler.registerMiss(x, y);
+                    playerBoardHandler.registerMiss(x, y);
                     System.out.println("La máquina falló en (" + x + ", " + y + ")");
                 }
 
-                PlayerHandler.updateGrid(false);
+                playerBoardHandler.updateGrid(false);
             }
         }
 
@@ -180,6 +190,7 @@ public class GameController {
             endGame = true;
             System.out.println("¡Juego Terminado! " + (playerCount == 0 ? "La máquina ganó." : "¡Ganaste!"));
         }
+        saveGameState();
     }
 
     /**
@@ -190,4 +201,66 @@ public class GameController {
         isBoardRevealed = !isBoardRevealed;
         System.out.println("Tablero revelado: " + (isBoardRevealed ? "Visible" : "Oculto"));
     }
+
+
+    public void saveGameState() {
+        GameProgress gameProgress = new GameProgress(
+                playerBoardHandler,
+                enemyBoardHandler,
+                playerBoardHandler.getBoard(),
+                enemyBoardHandler.getBoard(),
+                playerCount,
+                enemyCount,
+                isEnemyTurn,
+                endGame
+        );
+        gameStateManager.saveGame(gameProgress,saveFilePath);
+    }
+    public void newGameState() {
+        double planeWidth = 400;
+        double planeHeight = 400;
+        int gridSize = 10;
+
+        this.playerBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, PlayerBoardPane);
+        playerBoardHandler.updateGrid(false);
+
+        this.enemyBoardHandler = new BoardHandler(planeWidth, planeHeight, gridSize, enemyBoardPane);
+        enemyBoardHandler.updateGrid(true);
+        // Place enemy ships
+        placeEnemyShipsRandomly();
+    }
+
+    public void loadGameState() {
+        // Load the saved game progress using GameStateManager
+        GameProgress gameProgress = gameStateManager.loadGame(saveFilePath);
+        if (gameProgress == null) {
+            System.out.println("No saved game to load.");
+            return; // Exit if there's no saved game data
+        }
+
+        gameProgress.getPlayerBoardHandler().setBoard(gameProgress.getPlayerBoard(),PlayerBoardPane);
+        gameProgress.getEnemyBoardHandler().setBoard(gameProgress.getEnemyBoard(),enemyBoardPane);
+        // Restore game state variables
+        this.playerBoardHandler = gameProgress.getPlayerBoardHandler();
+        this.enemyBoardHandler = gameProgress.getEnemyBoardHandler();
+        this.playerCount = gameProgress.getPlayerCount();
+        this.enemyCount = gameProgress.getEnemyCount();
+        this.isEnemyTurn = gameProgress.isEnemyTurn();
+        this.endGame = gameProgress.isGameEnded();
+
+
+        playerBoardHandler.updateGrid(false);
+        enemyBoardHandler.updateGrid(true);
+
+        // Print game state for confirmation
+        System.out.println("Game state loaded successfully!");
+        System.out.println("Player boats left: " + playerCount);
+        System.out.println("Enemy boats left: " + enemyCount);
+        System.out.println("Is enemy's turn: " + isEnemyTurn);
+        System.out.println("Game ended: " + endGame);
+        // Set up the board interactions again
+        setupCellInteractions();
+    }
 }
+
+
