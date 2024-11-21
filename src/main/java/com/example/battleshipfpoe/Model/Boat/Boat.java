@@ -1,21 +1,17 @@
 package com.example.battleshipfpoe.Model.Boat;
 
-import com.example.battleshipfpoe.Controller.GameController;
-import com.example.battleshipfpoe.Controller.MenuController;
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import javafx.scene.Group;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Boat extends Group implements BoatInterface {
 
     private static final int SQUARE_SIZE = 60; // Size of one square
-    private int length;
+    private final int length;
     private boolean isHorizontal;
-    private double startX, startY;
+    private final double startX;
+    private final double startY;
     private int currentRow = -1;
     private int currentCol = -1;
     private BoardHandler boardHandler;
@@ -160,12 +156,12 @@ public class Boat extends Group implements BoatInterface {
         this.getChildren().clear();
         placeBoat(getLayoutX(), getLayoutY(), length, isHorizontal);
 
-        System.out.println("--------");
+       /* System.out.println("--------");
         boardHandler.printBoard();
         System.out.println("Boat rotated.");
         System.out.println("Placing boat at X: " + getLayoutX() + ", Y: " + getLayoutY() + ", Horizontal: " + isHorizontal);
         boardHandler.printBoard();
-        System.out.println("--------");
+        System.out.println("--------"); */
     }
 
 

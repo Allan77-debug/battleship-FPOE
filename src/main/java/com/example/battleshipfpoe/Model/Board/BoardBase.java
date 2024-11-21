@@ -13,6 +13,32 @@ public abstract class BoardBase {
     private final int tilesDown;
     private final AnchorPane anchorPane;
     private final ArrayList<ArrayList<Integer>> board;
+
+
+
+    public BoardBase() {
+        // Default values for the no-argument constructor
+        this.planeWidth = 400;        // Default plane width
+        this.planeHeight = 400;       // Default plane height
+        this.gridSize = 10;           // Default grid size (10x10)
+        this.anchorPane = null;       // AnchorPane will be reinitialized after deserialization
+
+        this.tilesAcross = (int) (planeWidth / gridSize);
+        this.tileAmount = (int) ((planeWidth / gridSize) * (planeHeight / gridSize));
+        this.tilesDown = tileAmount / tilesAcross;
+
+        // Initialize the board with default values
+        board = new ArrayList<>();
+        for (int i = 0; i < gridSize; i++) {
+            ArrayList<Integer> row = new ArrayList<>();
+            for (int j = 0; j < gridSize; j++) {
+                row.addLast(0); // Default to 0 (water)
+            }
+            board.addLast(row);
+        }
+    }
+
+
     /**
      * Constructs a BoardBase object with the given parameters.
      *
@@ -21,6 +47,7 @@ public abstract class BoardBase {
      * @param gridSize    the size of the grid (number of rows and columns)
      * @param anchorPane  the JavaFX AnchorPane to render the board
      */
+
     public BoardBase(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
         this.planeWidth = planeWidth;
         this.planeHeight = planeHeight;
@@ -113,6 +140,7 @@ public abstract class BoardBase {
      * Prints the current state of the board for debugging.
      */
     public void printBoard() {
+        System.out.println("---------------------");
         for (int i = 0; i < gridSize; i++) {
             for (int j = 0; j < gridSize; j++) {
                 System.out.print(getCell(i, j) + " ");

@@ -145,7 +145,6 @@ public class MenuController implements Initializable {
             boat.toFront();
             boat.requestFocus(); // Asegura que el barco recibe el enfoque
             boat.clearBoatPosition(boardHandler);
-            boardHandler.printBoard();
         });
 
         boat.setOnMouseDragged(event -> {
@@ -173,9 +172,6 @@ public class MenuController implements Initializable {
             snapToGrid(boat, event, initialPosition);
 
             boat.toFront();
-            System.out.println("-------------------");
-            System.out.println(isPositionValid);
-            boardHandler.printBoard();
             beingDragged = false;
         });
 
@@ -219,17 +215,20 @@ public class MenuController implements Initializable {
 
 
     public void handleNextButton(ActionEvent event) {
+        System.out.println("-------END OF SETTING BOATS-------");
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/game-view.fxml"));
             Parent root = loader.load();
 
             GameController gameController = loader.getController();
-
+            gameController.newGameState();
             // Pass the list of Boat objects to the GameController
             List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
 
             // Pass the list of boats to the GameController
             gameController.setBoatsList(boatsList);
+
+            gameController.saveGameState();
 
             Scene scene = new Scene(root);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
