@@ -141,6 +141,7 @@ public class GameController {
             System.out.println("¡Fallaste!");
         }
 
+        isBoardRevealed = false;
         handler.updateGrid(true);
         isEnemyTurn = true; // Cambia al turno de la máquina
         checkForEndGame();
