@@ -21,17 +21,19 @@ public class Boat extends Group implements BoatInterface {
     private int currentCol = -1;
     private BoardHandler boardHandler;
     private boolean rotated = false;
+    private int type;
 
     private boolean wasFirstMove = true;
     private Group boatDesign;
 
 
-    public Boat(Group boatDesign, double startX, double startY, int length, boolean isHorizontal) {
+    public Boat(Group boatDesign, double startX, double startY, int length, boolean isHorizontal, int type) {
         this.startX = startX;
         this.startY = startY;
         this.length = length;
         this.isHorizontal = true;
         this.boatDesign = boatDesign;
+        this.type = type;
         // Call placeBoat to initialize the boat
         placeBoat(boatDesign, startX, startY, length, isHorizontal);
 
@@ -58,6 +60,19 @@ public class Boat extends Group implements BoatInterface {
             toFront(); // Ensure the boat is at the front of the scene
         }
 
+   public int getType(){
+        switch(getLength()){
+            case 1: type = 1;
+            break;
+            case 2: type = 2;
+            break;
+            case 3: type = 3;
+            break;
+            case 4: type = 4;
+            break;
+        }
+        return type;
+   }
 
     public void storePosition(int row, int col) {
         this.currentRow = row;

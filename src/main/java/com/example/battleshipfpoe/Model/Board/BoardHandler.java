@@ -1,5 +1,6 @@
 package com.example.battleshipfpoe.Model.Board;
 
+import com.example.battleshipfpoe.Model.Boat.Boat;
 import com.example.battleshipfpoe.Model.List.ArrayList;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
@@ -189,6 +190,6 @@ public class BoardHandler extends BoardBase implements Serializable {
         printBoard();
         this.anchorPane = anchorPane;
         // Ensure the grid is updated after setting the new board
-        updateGrid(false);  // Pass `true` if you want to hide the board
+        updateGrid(false);  // Pass true if you want to hide the board
     }
 }
