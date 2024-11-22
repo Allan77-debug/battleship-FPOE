@@ -1,0 +1,70 @@
+
+.welcome-anchor {
+    -fx-background-image: url("../images/menuBg.jpg");
+    -fx-background-size: cover;
+    -fx-background-repeat: no-repeat;
+    -fx-background-color: #1e3d59; /* Azul profundo como respaldo */
+}
+.welcome-button {
+    -fx-background-color: linear-gradient(to bottom, #141e27, #0f161e); /* Azul metálico oscuro */
+    -fx-text-fill: #f3efef; /* Letras grises para un contraste más suave */
+    -fx-font-size: 20px;
+    -fx-font-family: "Copperplate Gothic Bold";
+
+    -fx-font-weight: bold;
+    -fx-padding: 15px 30px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-border-color: #0f77bc; /* Rojo más intenso para los bordes */
+    -fx-border-width: 3px;
+    -fx-effect: dropshadow(gaussian, rgba(19, 93, 165, 0.7), 25, 0.5, 0, 0); /* Sombra roja suave */
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease-in-out;
+
+}
+
+.welcome-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #101417, #0b0f12); /* Oscurece más en hover */
+    -fx-border-color: #2965df; /* Rojo más intenso en hover */
+    -fx-text-fill: #d0d0d0; /* Letras más claras pero no tan blancas */
+    -fx-effect: dropshadow(gaussian, rgba(12, 180, 237, 0.8), 20, 0.6, 0, 0); /* Sombra más sutil */
+}
+
+.welcome-button:pressed {
+    -fx-background-color: #080c10; /* Azul aún más oscuro cuando se presiona */
+    -fx-text-fill: #d0d0d0; /* Letras suaves, casi grises */
+    -fx-border-color: #0022ff; /* Rojo más intenso al presionar */
+    -fx-effect: dropshadow(gaussian, rgba(20, 107, 237, 0.9), 10, 0.8, 0, 0); /* Sombra más agresiva */
+}
+
+.quit-button {
+    -fx-background-color: linear-gradient(to bottom, #141e27, #0f161e); /* Azul metálico oscuro */
+    -fx-text-fill: #f3efef; /* Letras grises para un contraste más suave */
+    -fx-font-size: 20px;
+    -fx-font-family: "Copperplate Gothic Bold";
+
+    -fx-font-weight: bold;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-border-color: #0f77bc; /* Rojo más intenso para los bordes */
+    -fx-effect: dropshadow(gaussian, rgba(19, 93, 165, 0.7), 25, 0.5, 0, 0); /* Sombra roja suave */
+    -fx-cursor: hand;
+    -fx-transition: all 0.2s ease-in-out;
+
+}
+
+.quit-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #101417, #0b0f12); /* Oscurece más en hover */
+    -fx-border-color: #2965df; /* Rojo más intenso en hover */
+    -fx-text-fill: #d0d0d0; /* Letras más claras pero no tan blancas */
+    -fx-effect: dropshadow(gaussian, rgba(12, 180, 237, 0.8), 20, 0.6, 0, 0); /* Sombra más sutil */
+}
+
+.quit-button:pressed {
+    -fx-background-color: #080c10; /* Azul aún más oscuro cuando se presiona */
+    -fx-text-fill: #d0d0d0; /* Letras suaves, casi grises */
+    -fx-border-color: #0022ff; /* Rojo más intenso al presionar */
+    -fx-effect: dropshadow(gaussian, rgba(20, 107, 237, 0.9), 10, 0.8, 0, 0); /* Sombra más agresiva */
+}
+
+
