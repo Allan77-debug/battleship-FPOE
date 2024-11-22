@@ -36,7 +36,6 @@ public class WelcomeStage extends Stage {
 
     }
 
-
     /**
      * Retrieves the GameController instance associated with the current game stage.
      *

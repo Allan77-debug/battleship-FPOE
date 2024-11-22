@@ -2,35 +2,24 @@ package com.example.battleshipfpoe.Controller;
 
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
-import com.example.battleshipfpoe.Model.Boat.BoatVisuals;
+import com.example.battleshipfpoe.View.BoatVisuals;
 import com.example.battleshipfpoe.View.GameStage;
 import com.example.battleshipfpoe.View.PreparationStage;
-import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MenuController implements Initializable {
 
@@ -67,6 +56,7 @@ public class MenuController implements Initializable {
         BoatVisuals visuals = new BoatVisuals();
         warningLabel.setOpacity(0);
 
+
         BoatVisuals.Caravel caravel = visuals.new Caravel();
         BoatVisuals.Submarine submarine = visuals.new Submarine();
         BoatVisuals.Destroyer destroyer = visuals.new Destroyer();
@@ -98,7 +88,9 @@ public class MenuController implements Initializable {
 
         // Creación de Submarines con espaciado horizontal
         for (int i = 0; i < 2; i++) {
+
             submarines.add(new Boat(submarine.SubmarineDrawer(),firstBoatXPosition + (horizontalSpacing -3), firstBoatYPosition + ((2 * verticalSpacing) - 30), 3, true, 3));
+
         }
 
         Boat aircraftBoat = new Boat(aircraft.AircraftDrawer(), firstBoatXPosition + horizontalSpacing - 220, firstBoatYPosition + 270, 4, true, 4);
@@ -107,19 +99,23 @@ public class MenuController implements Initializable {
         // Añadir Fragatas al panel
         for (Boat fragate : fragates) {
             addBoatToPane(fragate);
+            fragate.setWasFirstMove(true);
         }
 
         // Añadir Destroyers al panel
         for (Boat destroyerBoat : destroyers) {
             addBoatToPane(destroyerBoat);
+            destroyerBoat.setWasFirstMove(true);
         }
 
         // Añadir Submarines al panel
         for (Boat submarineBoat : submarines) {
             addBoatToPane(submarineBoat);
+            submarineBoat.setWasFirstMove(true);
         }
 
         addBoatToPane(aircraftBoat);
+        aircraftBoat.setWasFirstMove(true);
 
     }
 
@@ -164,12 +160,15 @@ public class MenuController implements Initializable {
 
 
         if (ValidPlacement(boat, col, row)) {
-            unplacedBoats --;
+            if(boat.isWasFirstMove()){
+                unplacedBoats --;
+            }
             boat.setWasFirstMove(false);
+            System.out.println(unplacedBoats);
             isPositionValid = true;
             isSnapped = true;
 
-
+            System.out.println(unplacedBoats);
 
             // Si ya estaba snappeado y cambió de orientación, limpiar posición previa
             if (wasSnapped && boat.isRotated() != initialOrientation[0]) {
@@ -184,12 +183,12 @@ public class MenuController implements Initializable {
                     break;
                 case 2:
                     if(boat.isHorizontal()){
-                    boat.setLayoutX((col * tileWidth) - 40);
-                    boat.setLayoutY((row * tileHeight) - 122);
-                }else{
-                    boat.setLayoutX((col * tileWidth) - 70);
-                    boat.setLayoutY((row * tileHeight) - 93);
-                }
+                        boat.setLayoutX((col * tileWidth) - 40);
+                        boat.setLayoutY((row * tileHeight) - 122);
+                    }else{
+                        boat.setLayoutX((col * tileWidth) - 70);
+                        boat.setLayoutY((row * tileHeight) - 93);
+                    }
                     break;
                 case 3:
                     if(boat.isHorizontal()){
@@ -364,8 +363,10 @@ public class MenuController implements Initializable {
         boolean isEmptyNick = nickTxtField.getText().isEmpty();
 
 
-        if(unplacedBoats != 0){
+        if(unplacedBoats == 0){
             isThereUnplacedBoats = false;
+        }else{
+            isThereUnplacedBoats = true;
         }
 
 

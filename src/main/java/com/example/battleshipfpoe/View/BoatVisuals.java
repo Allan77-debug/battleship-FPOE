@@ -1,4 +1,4 @@
-package com.example.battleshipfpoe.Model.Boat;
+package com.example.battleshipfpoe.View;
 
 import javafx.scene.Group;
 import javafx.scene.effect.Bloom;
@@ -8,10 +8,21 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 
+/**
+ * Class that contains the inner classes for each baot.
+ */
 public class BoatVisuals {
 
+    /**
+     * Innner class that just has a method to draw the design for the "Caravel" boat.
+     */
     public class Caravel {
 
+
+        /**
+         * A method that creates every figure that is used for the "Caravel" design and group them, retorning that group when called the method.
+         * @return Group
+         */
         public Group CaravelDrawer(){
             // Crear un Group para agregar las formas
             Group group = new Group();
@@ -100,8 +111,15 @@ public class BoatVisuals {
 
         }
     }
+    /**
+     * Innner class that just has a method to draw the design for the "destroyer" boat.
+     */
     public class Destroyer {
 
+        /**
+         * A method that creates every figure that is used for the "Destructor" design and group them, retorning that group when called the method.
+         * @return Group
+         */
 
         public Group DestroyerDrawer(){
             // Polygons
@@ -337,9 +355,14 @@ public class BoatVisuals {
             return group;
         }
     }
+    /**
+     * Innner class that just has a method to draw the design for the "Submarine" boat.
+     */
     public class Submarine {
-
-
+        /**
+         * A method that creates every figure that is used for the "Submarine" design and group them, retorning that group when called the method.
+         * @return Group
+         */
         public Group SubmarineDrawer() {
             // Primer AnchorPane
             Group group = new Group();
@@ -488,8 +511,15 @@ public class BoatVisuals {
             return group;
         }
     }
+    /**
+     * Innner class that just has a method to draw the design for the "Aircraft" boat.
+     */
     public class Aircraft {
 
+        /**
+         * A method that creates every figure that is used for the "Aircraft" design and group them, retorning that group when called the method.
+         * @return Group
+         */
         public Group AircraftDrawer () {
             Group group = new Group();
 

@@ -1,6 +1,5 @@
 package com.example.battleshipfpoe.View;
 
-import com.example.battleshipfpoe.Controller.GameController;
 import com.example.battleshipfpoe.Controller.MenuController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,54 +10,77 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
-public class PreparationStage extends Stage {  // Extendemos Stage para acceder a sus métodos
+/**
+ * Represents the preparation stage for the "BattleShip" game.
+ * This class is responsible for setting up the menu scene, initializing the menu controller,
+ * and managing the singleton instance of the preparation stage.
+ */
+public class PreparationStage extends Stage {
 
-    private final MenuController menuController;  // Corregir la declaración del controlador
+    private final MenuController menuController;  // Controller responsible for managing menu logic
 
     /**
-     * Initializes a new instance of the GameStage. This constructor sets up the game
-     * scene by loading the FXML view, initializing the game controller, and configuring the
-     * stage properties such as its title, icon, and resizability.
+     * Initializes a new instance of the PreparationStage.
+     * This constructor sets up the menu scene by loading the FXML view, initializing the menu controller,
+     * and configuring the stage properties such as its title, icon, and resizability.
      *
-     * @throws IOException If there is an error loading the FXML file.
+     * @throws IOException if there is an error loading the FXML file.
      */
     public PreparationStage() throws IOException {
+        // Load the FXML file and initialize the menu controller
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/battleshipfpoe/fxml/menu-view.fxml"));
         Parent root = loader.load();
-        menuController = loader.getController();  // Asignar correctamente el controlador
+        menuController = loader.getController();
+
+        // Set up the scene and stage properties
         Scene scene = new Scene(root);
-        setScene(scene);  // Establecer la escena
-        setTitle("BattleShip");  // Establecer el título
-        getIcons().add(new Image(String.valueOf(getClass().getResource("/com/example/battleshipfpoe/images/favicon.png"))));  // Agregar ícono
-        setResizable(false);  // Hacer que la ventana no sea redimensionable
+        setScene(scene);
+        setTitle("BattleShip");
+        setIcon("/com/example/battleshipfpoe/images/favicon.png");
+        setResizable(false);
         initStyle(StageStyle.UNDECORATED);
-        show();  // Mostrar la ventana
+
+        // Show the stage
+        show();
     }
 
+    /**
+     * Initializes a new instance of the PreparationStage with a given MenuController.
+     * This constructor can be used if a MenuController is already available or needs to be passed in.
+     *
+     * @param menuController The MenuController instance to be used.
+     */
     public PreparationStage(MenuController menuController) {
         this.menuController = menuController;
     }
 
     /**
-     * Retrieves the GameController instance associated with the current game stage.
+     * Sets the window icon for the preparation stage.
      *
-     * @return The GameController instance managing the game's logic and interactions.
+     * @param iconPath The relative path to the icon image.
+     */
+    private void setIcon(String iconPath) {
+        getIcons().add(new Image(String.valueOf(getClass().getResource(iconPath))));
+    }
+
+    /**
+     * Retrieves the MenuController instance associated with the current preparation stage.
+     *
+     * @return The MenuController instance managing the menu's logic and interactions.
      */
     public MenuController getMenuController() {
         return menuController;
     }
 
     /**
-     * A placeholder class to hold the singleton instance of PreparationStage.
-     * This nested static class ensures that the PreparationStage instance is lazily initialized
-     * and provides a thread-safe way to manage the singleton instance.
+     * A private static nested class used to manage the singleton instance of PreparationStage.
      */
     private static class PreparationStageHolder {
         private static PreparationStage INSTANCE;
     }
 
     /**
-     * Retrieves the singleton instance of PreparationStage. If the instance does not exist, it initializes a new one.
+     * Retrieves the singleton instance of PreparationStage. If the instance doesn't exist, it initializes a new one.
      *
      * @return The singleton instance of PreparationStage.
      * @throws IOException if there is an error creating the PreparationStage instance.
@@ -72,17 +94,13 @@ public class PreparationStage extends Stage {  // Extendemos Stage para acceder 
 
     /**
      * Deletes the singleton instance of the PreparationStage, if it exists.
-     * <p>
-     * This method checks if the singleton instance of PreparationStage is not null.
-     * If it exists, it closes the PreparationStage and sets the instance to null,
+     * This method closes the current stage and sets the instance to null,
      * effectively deleting the existing instance.
      */
     public static void deleteInstance() {
-        if (PreparationStageHolder.INSTANCE != null) {
-            PreparationStageHolder.INSTANCE.close();
+        if (PreparationStage.PreparationStageHolder.INSTANCE != null) {
+            PreparationStage.PreparationStageHolder.INSTANCE.close();
+            PreparationStage.PreparationStageHolder.INSTANCE = null;
         }
     }
 }
-
-
-
