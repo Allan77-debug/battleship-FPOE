@@ -2,12 +2,15 @@ package com.example.battleshipfpoe.Model.Board;
 
 import com.example.battleshipfpoe.Model.Boat.Boat;
 import com.example.battleshipfpoe.Model.List.ArrayList;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Polygon;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class BoardHandler extends BoardBase implements Serializable {
 
@@ -23,6 +26,7 @@ public class BoardHandler extends BoardBase implements Serializable {
     public BoardHandler() {
         this.board = new ArrayList<>();
     }
+
 
     // Constructor
     public BoardHandler(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
@@ -58,23 +62,26 @@ public class BoardHandler extends BoardBase implements Serializable {
         cell.setLayoutX(col * getTilesAcross());
         cell.setLayoutY(row * getTilesDown());
 
-        // Configura el fondo
         int tileValue = getCell(row, col);
-        Color tileColor = (isBoardHidden && tileValue == 1) ? BACKGROUND_COLOR_1 : determineTileColor(tileValue);
-        cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+        if (tileValue == -1) {
+            Pane xShape = createXShape(getTilesAcross(), getTilesDown());
+            cell.getChildren().add(xShape);
+        } else if (tileValue == 2) {
+            Pane explosionShape = createExplosionShape(20); // Radius of explosion
+            cell.getChildren().add(explosionShape);
+        }
+        else if (tileValue == 1 && !isBoardHidden) {
+            Color tileColor = SHIP_COLOR;
+            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
 
-        // Agrega un contenedor interno para los barcos
-        Pane shipContainer = new Pane();
-        shipContainer.setPrefSize(cell.getPrefWidth(), cell.getPrefHeight());
-        shipContainer.setStyle("-fx-background-color: transparent;"); // Inicialmente vacío
-
-        // Almacena las coordenadas en el nodo
+        }
+        else {
+            Color tileColor = BACKGROUND_COLOR_1;
+            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+        }
         cell.setUserData(new int[]{row, col});
-        cell.getChildren().add(shipContainer);
-
         return cell;
     }
-
 
     private Color determineTileColor(int tileValue) {
         return switch (tileValue) {
@@ -148,32 +155,9 @@ public class BoardHandler extends BoardBase implements Serializable {
         for (int i = 0; i < size; i++) {
             int row = horizontal ? startX : startX + i;
             int col = horizontal ? startY + i : startY;
-
-            // Asegúrate de que la celda esté dentro del tablero
-            if (!isWithinBounds(row, col)) continue;
-
-            Pane cell = (Pane) anchorPane.getChildren()
-                    .stream()
-                    .filter(node -> {
-                        int[] coords = (int[]) node.getUserData();
-                        return coords[0] == row && coords[1] == col;
-                    })
-                    .findFirst()
-                    .orElse(null);
-
-            if (cell != null) {
-                Pane shipContainer = (Pane) cell.getChildren().get(0);
-                shipContainer.setStyle("-fx-background-color: " + toRgbString(SHIP_COLOR) + ";");
-
-                // Ajusta el tamaño del barco dentro del contenedor
-                shipContainer.setPrefSize(shipContainer.getWidth() * 0.9, shipContainer.getHeight() * 0.9);
-            }
-
-            // Marca la celda como ocupada por un barco
-            setCell(row, col, 1);
+            setCell(row, col, 1); // 1 representa un barco
         }
     }
-
 
     /**
      * Marca una celda como impactada.
@@ -224,4 +208,61 @@ public class BoardHandler extends BoardBase implements Serializable {
         // Ensure the grid is updated after setting the new board
         updateGrid(false);  // Pass true if you want to hide the board
     }
+
+
+    private Pane createExplosionShape(double radius) {
+        Polygon explosion = new Polygon();
+
+        // Generate points for the starburst
+        int spikes = 8; // Number of spikes
+        double centerX = radius, centerY = radius;
+
+        for (int i = 0; i < spikes * 2; i++) {
+            double angle = Math.toRadians((360.0 / (spikes * 2)) * i);
+            double r = (i % 2 == 0) ? radius : radius / 2; // Alternate between outer and inner radius
+            double x = centerX + r * Math.cos(angle);
+            double y = centerY + r * Math.sin(angle);
+            explosion.getPoints().addAll(x, y);
+        }
+
+        // Customize appearance
+        explosion.setFill(Color.ORANGE);
+        explosion.setStroke(Color.RED);
+        explosion.setStrokeWidth(3);
+
+        // Add explosion to a Pane
+        Pane pane = new Pane(explosion);
+        pane.setPrefSize(radius * 2, radius * 2);
+        pane.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(BACKGROUND_COLOR_1) + ";");// Ensure Pane size matches the explosion
+        return pane;
+    }
+    private Pane createXShape(double width, double height) {
+        double x1 = width * 0.2; // Start X for the first line
+        double y1 = height * 0.2; // Start Y for the first line
+        double x2 = width * 0.8; // End X for the first line
+        double y2 = height * 0.8; // End Y for the first line
+        double x3 = width * 0.2; // Start X for the second line
+        double y3 = height * 0.8; // Start Y for the second line
+        double x4 = width * 0.8; // End X for the second line
+        double y4 = height * 0.2; // End Y for the second line
+
+        Line line1 = new Line(x1, y1, x2, y2); // Diagonal from top-left to bottom-right
+        Line line2 = new Line(x3, y3, x4, y4); // Diagonal from bottom-left to top-right
+
+        // Customize the appearance of the lines
+        line1.setStroke(Color.BLACK);
+        line1.setStrokeWidth(5); // Thickness of the line
+        line2.setStroke(Color.BLACK);
+        line2.setStrokeWidth(5);
+
+        // Add the lines to a Pane
+        Pane pane = new Pane(line1, line2);
+        pane.setPrefSize(width, height);
+        pane.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(BACKGROUND_COLOR_1) + ";");// Ensure the Pane matches the size
+        return pane;
+    }
+
+
+
 }
+

@@ -7,23 +7,31 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
 
 import java.util.List;
 import java.util.Random;
 
 public class GameController {
-
+    @FXML
+    private Text PlayerText;
     @FXML
     private AnchorPane PlayerBoardPane;
     @FXML
     private AnchorPane enemyBoardPane;
+    @FXML
+    private AnchorPane testPane;
 
-    private GameStateManager gameStateManager;
-    private String saveFilePath = "gameState.ser";
+    private SerializedGameStateManager serializedGameStateManager;
+    private final String SerializedSaveFilePath = "SerializedGameState.ser";
+
+    private PlainTextGameStateManager plainTextGameStateManager;
+    private final String TextSaveFilePath = "TextGameState.txt";
 
     private BoardHandler playerBoardHandler;
     private BoardHandler enemyBoardHandler;
 
+    private List<Boat> playerBoatsList;
     private int playerCount = 0;
     private int enemyCount = 0;
 
@@ -31,11 +39,16 @@ public class GameController {
     private boolean isEnemyTurn = false;
 
     private boolean endGame = false;
+    private String playerName = "";
 
     public void initialize() {
         SaveInterface<GameProgress> serializedHandler = new SerializedSaveHandler<>();
-        SaveSystem<GameProgress> saveSystem = new SaveSystem<>(serializedHandler);
-        gameStateManager = new GameStateManager(saveSystem);
+        SaveSystem<GameProgress> serializedSaveSystem = new SaveSystem<>(serializedHandler);
+        serializedGameStateManager = new SerializedGameStateManager(serializedSaveSystem);
+        PlainTextSaveHandler plainTextHandler = new PlainTextSaveHandler();
+        SaveSystem<String> textSaveSystem = new SaveSystem<>(plainTextHandler);
+        plainTextGameStateManager = new PlainTextGameStateManager(textSaveSystem);
+
     }
 
     public void setBoatsList(List<Boat> boatsList) {
@@ -52,13 +65,17 @@ public class GameController {
         int col = position[1];
         boolean isHorizontal = boat.isHorizontal();
 
+        // Place the boat logically on the board first
         if (canPlaceBoat(row, col, boat.getLength(), isHorizontal)) {
             placeShip(row, col, boat.getLength(), isHorizontal);
             playerCount += boat.getLength();
+
         } else {
             System.out.println("Could not place the boat at (" + row + ", " + col + ")");
         }
     }
+
+
     private boolean canPlaceBoat(int row, int col, int boatLength, boolean isHorizontal) {
         return playerBoardHandler.canPlaceShip(row, col, boatLength, isHorizontal);
     }
@@ -216,7 +233,7 @@ public class GameController {
                 isEnemyTurn,
                 endGame
         );
-        gameStateManager.saveGame(gameProgress,saveFilePath);
+        serializedGameStateManager.saveGame(gameProgress, SerializedSaveFilePath);
     }
     public void newGameState() {
         double planeWidth = 400;
@@ -230,16 +247,22 @@ public class GameController {
         enemyBoardHandler.updateGrid(true);
         // Place enemy ships
         placeEnemyShipsRandomly();
+        PlayerText.setText(playerName.toUpperCase());
     }
 
     public void loadGameState() {
+        // Load Plain Text Data
+        String textData = plainTextGameStateManager.loadGame(TextSaveFilePath);
+        if (textData != null) {
+            this.playerName = textData;
+            PlayerText.setText(playerName.toUpperCase());
+        }
         // Load the saved game progress using GameStateManager
-        GameProgress gameProgress = gameStateManager.loadGame(saveFilePath);
+        GameProgress gameProgress = serializedGameStateManager.loadGame(SerializedSaveFilePath);
         if (gameProgress == null) {
             System.out.println("No saved game to load.");
-            return; // Exit if there's no saved game data
+            return;
         }
-
         gameProgress.getPlayerBoardHandler().setBoard(gameProgress.getPlayerBoard(),PlayerBoardPane);
         gameProgress.getEnemyBoardHandler().setBoard(gameProgress.getEnemyBoard(),enemyBoardPane);
         // Restore game state variables
@@ -254,13 +277,9 @@ public class GameController {
         playerBoardHandler.updateGrid(false);
         enemyBoardHandler.updateGrid(true);
 
-        // Print game state for confirmation
-        System.out.println("Game state loaded successfully!");
-        System.out.println("Player boats left: " + playerCount);
-        System.out.println("Enemy boats left: " + enemyCount);
-        System.out.println("Is enemy's turn: " + isEnemyTurn);
-        System.out.println("Game ended: " + endGame);
-        // Set up the board interactions again
         setupCellInteractions();
+    }
+    public void setPlayerText(String playerName) {
+        this.playerName = playerName;
     }
 }

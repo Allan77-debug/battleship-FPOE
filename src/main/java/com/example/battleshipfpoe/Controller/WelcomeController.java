@@ -9,9 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -19,8 +17,7 @@ import java.io.IOException;
 
 public class WelcomeController {
 
-    private String saveFilePath = "gameState.ser";
-
+    private final String SerializedSaveFilePath = "SerializedGameState.ser";
     private Stage stage;
     private Scene scene;
     private Parent root;
@@ -55,10 +52,10 @@ public class WelcomeController {
         // Initialize Save System and GameStateManager
         SaveInterface<GameProgress> serializedHandler = new SerializedSaveHandler<>();
         SaveSystem<GameProgress> saveSystem = new SaveSystem<>(serializedHandler);
-        GameStateManager gameStateManager = new GameStateManager(saveSystem);
+        SerializedGameStateManager serializedGameStateManager = new SerializedGameStateManager(saveSystem);
 
         try {
-            GameProgress loadedGame = gameStateManager.loadGame(saveFilePath);
+            GameProgress loadedGame = serializedGameStateManager.loadGame(SerializedSaveFilePath);
 
             if (loadedGame != null) {
                 // Pass the loaded game state to the GameController
