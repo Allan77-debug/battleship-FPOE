@@ -193,6 +193,9 @@ public class GameController {
             handler.registerHit(row, col);
             enemyCount--;
             System.out.println("¡Acertaste!");
+            handler.updateGrid(true);
+            setupCellInteractions();
+            return;
         } else {
             handler.registerMiss(row, col);
             System.out.println("¡Fallaste!");
@@ -226,6 +229,8 @@ public class GameController {
                     playerBoardHandler.registerHit(x, y);
                     playerCount--;
                     System.out.println("La máquina acertó en (" + x + ", " + y + ")");
+                    setupCellInteractions();
+                    return;
                 } else {
                     playerBoardHandler.registerMiss(x, y);
                     System.out.println("La máquina falló en (" + x + ", " + y + ")");
