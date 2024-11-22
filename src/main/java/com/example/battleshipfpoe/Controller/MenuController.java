@@ -102,16 +102,19 @@ public class MenuController implements Initializable {
         // Añadir Fragatas al panel
         for (Boat fragate : fragates) {
             addBoatToPane(fragate);
+            fragate.setWasFirstMove(true);
         }
 
         // Añadir Destroyers al panel
         for (Boat destroyerBoat : destroyers) {
             addBoatToPane(destroyerBoat);
+            destroyerBoat.setWasFirstMove(true);
         }
 
         // Añadir Submarines al panel
         for (Boat submarineBoat : submarines) {
             addBoatToPane(submarineBoat);
+            submarineBoat.setWasFirstMove(true);
         }
 
         addBoatToPane(aircraftBoat);
@@ -161,10 +164,13 @@ public class MenuController implements Initializable {
 
 
         if (ValidPlacement(boat, col, row)) {
-            unplacedBoats --;
-            boat.setWasFirstMove(false);
             isPositionValid = true;
             isSnapped = true;
+            if(boat.isWasFirstMove()){
+                unplacedBoats --;
+            }
+
+            boat.setWasFirstMove(false);
 
 
 
@@ -181,12 +187,12 @@ public class MenuController implements Initializable {
                     break;
                 case 2:
                     if(boat.isHorizontal()){
-                    boat.setLayoutX((col * tileWidth) - 40);
-                    boat.setLayoutY((row * tileHeight) - 122);
-                }else{
-                    boat.setLayoutX((col * tileWidth) - 70);
-                    boat.setLayoutY((row * tileHeight) - 93);
-                }
+                        boat.setLayoutX((col * tileWidth) - 40);
+                        boat.setLayoutY((row * tileHeight) - 122);
+                    }else{
+                        boat.setLayoutX((col * tileWidth) - 70);
+                        boat.setLayoutY((row * tileHeight) - 93);
+                    }
                     break;
                 case 3:
                     if(boat.isHorizontal()){
@@ -346,8 +352,10 @@ public class MenuController implements Initializable {
         boolean isEmptyNick = nickTxtField.getText().isEmpty();
 
 
-        if(unplacedBoats != 0){
+        if(unplacedBoats == 0){
             isThereUnplacedBoats = false;
+        }else{
+            isThereUnplacedBoats = true;
         }
 
 
