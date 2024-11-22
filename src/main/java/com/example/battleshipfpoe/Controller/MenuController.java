@@ -364,7 +364,7 @@ public class MenuController implements Initializable {
         boolean isEmptyNick = nickTxtField.getText().isEmpty();
 
 
-        if(unplacedBoats == 0){
+        if(unplacedBoats != 0){
             isThereUnplacedBoats = false;
         }
 
@@ -384,6 +384,7 @@ public class MenuController implements Initializable {
             blink.setCycleCount(8);
             blink.setAutoReverse(true);
             blink.play();
+
         } else {
             try {
                 // Obtener la instancia única de PreparationStage

@@ -41,9 +41,9 @@
             <Font size="21.0" />
          </font>
       </Button>
-      <TextField fx:id="nickTxtField" alignment="CENTER" layoutX="882.0" layoutY="618.0" promptText="Nickname!">
+      <TextField fx:id="nickTxtField" alignment="CENTER" layoutX="860.0" layoutY="620.0" promptText="Nickname!">
          <font>
-            <Font name="ROGFonts-Regular" size="20.0" />
+            <Font name="Copperplate Gothic Bold" size="20.0" />
          </font>
       </TextField>
       <Label fx:id="warningLabel" layoutX="772.0" layoutY="677.0" text="You need all your boats to be on board and a nickname." textFill="#80ff00">
