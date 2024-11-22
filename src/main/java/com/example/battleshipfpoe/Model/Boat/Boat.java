@@ -1,19 +1,10 @@
 package com.example.battleshipfpoe.Model.Boat;
 
-import com.example.battleshipfpoe.Controller.GameController;
-import com.example.battleshipfpoe.Controller.MenuController;
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import javafx.scene.Group;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 public class Boat extends Group implements BoatInterface {
 
-    private static final int SQUARE_SIZE = 60; // Size of one square
     private int length;
     private boolean isHorizontal;
     private double startX, startY;
@@ -53,11 +44,13 @@ public class Boat extends Group implements BoatInterface {
         // Añadir al Group del barco
         getChildren().clear(); // Asegurarse de limpiar cualquier contenido previo
         getChildren().add(boatDesign);
+        
 
             // Set the initial position of the boat
             setLayoutX(startX);
             setLayoutY(startY);
-            toFront(); // Ensure the boat is at the front of the scene
+            toFront();
+            boatDesign.toFront();// Ensure the boat is at the front of the scene
         }
 
    public int getType(){
@@ -107,6 +100,7 @@ public class Boat extends Group implements BoatInterface {
         }
     }
 
+    public Group getBoatGroup() {return boatDesign;}
     @Override
     public int getLength() {
         return length;

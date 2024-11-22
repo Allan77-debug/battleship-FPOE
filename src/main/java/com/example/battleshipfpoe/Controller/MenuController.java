@@ -3,34 +3,26 @@ package com.example.battleshipfpoe.Controller;
 import com.example.battleshipfpoe.Model.Board.BoardHandler;
 import com.example.battleshipfpoe.Model.Boat.Boat;
 import com.example.battleshipfpoe.Model.Boat.BoatVisuals;
+import com.example.battleshipfpoe.Model.SaveSystem.PlainTextGameStateManager;
+import com.example.battleshipfpoe.Model.SaveSystem.PlainTextSaveHandler;
+import com.example.battleshipfpoe.Model.SaveSystem.SaveSystem;
 import com.example.battleshipfpoe.View.GameStage;
 import com.example.battleshipfpoe.View.PreparationStage;
-import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MenuController implements Initializable {
 
@@ -44,6 +36,9 @@ public class MenuController implements Initializable {
     private boolean isWarningVisible = false;
     private int unplacedBoats =  10;
     boolean isThereUnplacedBoats = true;
+
+    private PlainTextGameStateManager plainTextGameStateManager;
+    private final String TextSaveFilePath = "TextGameState.txt";
 
 
     PreparationStage preparationStage;
@@ -120,7 +115,9 @@ public class MenuController implements Initializable {
         }
 
         addBoatToPane(aircraftBoat);
-
+        PlainTextSaveHandler plainTextHandler = new PlainTextSaveHandler();
+        SaveSystem<String> textSaveSystem = new SaveSystem<>(plainTextHandler);
+        plainTextGameStateManager = new PlainTextGameStateManager(textSaveSystem);
     }
 
 
@@ -261,7 +258,7 @@ public class MenuController implements Initializable {
             mouseOffset[0] = event.getSceneX() - boat.getLayoutX();
             mouseOffset[1] = event.getSceneY() - boat.getLayoutY();
             boat.toFront();
-            boat.requestFocus(); // Asegura que el barco recibe el enfoque
+            boat.requestFocus();
             boat.clearBoatPosition(boardHandler, initialOrientation[0]);
             boardHandler.printBoard();
         });
@@ -270,9 +267,7 @@ public class MenuController implements Initializable {
             double newX = event.getSceneX() - mouseOffset[0];
             double newY = event.getSceneY() - mouseOffset[1];
 
-            // Si el barco está rotado, debes ajustar la posición
             if (boat.isRotated()) {
-                // Calcular la nueva posición tomando en cuenta la rotación
                 newX = event.getSceneX() - mouseOffset[0];
                 newY = event.getSceneY() - mouseOffset[1];
             }
@@ -285,33 +280,25 @@ public class MenuController implements Initializable {
 
         boat.setOnKeyPressed(event -> {
             if (beingDragged && event.getCode() == KeyCode.R) {
-                // Guardamos la posición inicial
                 double oldX = boat.getLayoutX();
                 double oldY = boat.getLayoutY();
 
-                // Realizar la rotación
                 boat.rotate();
                 boat.setRotated(boat.isRotated());
 
-                // Calcular el desplazamiento del barco debido a la rotación
                 double offsetX = oldX - boat.getLayoutX();
                 double offsetY = oldY - boat.getLayoutY();
 
-                // Después de la rotación, ajustar la posición para que el barco quede bajo el clic
-                boat.setLayoutX(oldX - offsetX); // Mantener la posición en X
-                boat.setLayoutY(oldY - offsetY); // Mantener la posición en Y
+                boat.setLayoutX(oldX - offsetX);
+                boat.setLayoutY(oldY - offsetY);
 
-                boat.toFront(); // Asegurarse de que el barco quede sobre otros elementos
+                boat.toFront();
             }
         });
 
         boat.setOnMouseReleased(event -> {
-            // Realizar la validación al soltar el barco después de arrastrarlo
             snapToGrid(boat, event, initialPosition);
             boat.toFront();
-            System.out.println("-------------------");
-            System.out.println(isPositionValid);
-            boardHandler.printBoard();
             beingDragged = false;
         });
 
@@ -330,17 +317,14 @@ public class MenuController implements Initializable {
     }
 
     private boolean isValidHorizontalPlacement(int col, int row, int boatSize) {
-        // Verificar que el barco no se desborde en la dirección horizontal
         return col >= 0 && col + boatSize <= boardHandler.getGridSize();
     }
 
     private boolean isValidVerticalPlacement(int col, int row, int boatSize) {
-        // Verificar que el barco no se desborde en la dirección vertical
         return row >= 0 && row + boatSize <= boardHandler.getGridSize();
     }
 
     private boolean areCellsAvailableForHorizontal(int col, int row, int boatSize) {
-        // Verificar que las celdas en la fila estén libres para el barco horizontal
         for (int i = 0; i < boatSize; i++) {
             if (!boardHandler.isWithinBounds(row, col + i) || boardHandler.getCell(row, col + i) == 1) {
                 return false;
@@ -350,7 +334,6 @@ public class MenuController implements Initializable {
     }
 
     private boolean areCellsAvailableForVertical(int col, int row, int boatSize) {
-        // Verificar que las celdas en la columna estén libres para el barco vertical
         for (int i = 0; i < boatSize; i++) {
             if (!boardHandler.isWithinBounds(row + i, col) || boardHandler.getCell(row + i, col) == 1) {
                 return false;
@@ -358,7 +341,6 @@ public class MenuController implements Initializable {
         }
         return true;
     }
-
 
     public void handleNextButton(ActionEvent event) {
         boolean isEmptyNick = nickTxtField.getText().isEmpty();
@@ -389,9 +371,10 @@ public class MenuController implements Initializable {
             try {
                 // Obtener la instancia única de PreparationStage
 
-
+                plainTextGameStateManager.saveGame(nickTxtField.getText(), TextSaveFilePath);
                 // Pasar la lista de barcos al controlador de GameController
                 GameStage.getInstance();
+                GameStage.getInstance().getGameController().setPlayerText(nickTxtField.getText());
                 GameStage.getInstance().getGameController().newGameState();
                 List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
                 GameStage.getInstance().getGameController().setBoatsList(boatsList);

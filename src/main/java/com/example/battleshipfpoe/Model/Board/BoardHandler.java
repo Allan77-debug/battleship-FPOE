@@ -1,23 +1,19 @@
 package com.example.battleshipfpoe.Model.Board;
 
-import com.example.battleshipfpoe.Model.Boat.Boat;
 import com.example.battleshipfpoe.Model.List.ArrayList;
-import javafx.scene.image.Image;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
 
 public class BoardHandler extends BoardBase implements Serializable {
 
     private static final Color BACKGROUND_COLOR_1 = Color.rgb(127, 205, 255);
     private static final Color SHIP_COLOR = Color.GRAY;
-    private static final Color HIT_COLOR = Color.RED;
-    private static final Color MISS_COLOR = Color.BLUE;
 
     private ArrayList<ArrayList<Integer>> board; // Logical state of the board
     private transient AnchorPane anchorPane; // Transient field for UI, not serialized
@@ -71,25 +67,14 @@ public class BoardHandler extends BoardBase implements Serializable {
             cell.getChildren().add(explosionShape);
         }
         else if (tileValue == 1 && !isBoardHidden) {
-            Color tileColor = SHIP_COLOR;
-            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(SHIP_COLOR) + ";");
 
         }
         else {
-            Color tileColor = BACKGROUND_COLOR_1;
-            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(tileColor) + ";");
+            cell.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(BACKGROUND_COLOR_1) + ";");
         }
         cell.setUserData(new int[]{row, col});
         return cell;
-    }
-
-    private Color determineTileColor(int tileValue) {
-        return switch (tileValue) {
-            case 1 -> SHIP_COLOR;
-            case 2 -> HIT_COLOR;
-            case -1 -> MISS_COLOR;
-            default -> BACKGROUND_COLOR_1;
-        };
     }
 
     /**
@@ -203,7 +188,6 @@ public class BoardHandler extends BoardBase implements Serializable {
             }
 
         }
-        printBoard();
         this.anchorPane = anchorPane;
         // Ensure the grid is updated after setting the new board
         updateGrid(false);  // Pass true if you want to hide the board
@@ -215,13 +199,12 @@ public class BoardHandler extends BoardBase implements Serializable {
 
         // Generate points for the starburst
         int spikes = 8; // Number of spikes
-        double centerX = radius, centerY = radius;
 
         for (int i = 0; i < spikes * 2; i++) {
             double angle = Math.toRadians((360.0 / (spikes * 2)) * i);
             double r = (i % 2 == 0) ? radius : radius / 2; // Alternate between outer and inner radius
-            double x = centerX + r * Math.cos(angle);
-            double y = centerY + r * Math.sin(angle);
+            double x = radius + r * Math.cos(angle);
+            double y = radius + r * Math.sin(angle);
             explosion.getPoints().addAll(x, y);
         }
 
@@ -263,7 +246,5 @@ public class BoardHandler extends BoardBase implements Serializable {
     }
 
 
-
-}
 
 }
