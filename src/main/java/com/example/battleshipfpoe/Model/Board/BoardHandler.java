@@ -10,6 +10,10 @@ import javafx.scene.shape.Polygon;
 import java.io.Serial;
 import java.io.Serializable;
 
+/**
+ * Handles the logic and rendering of the game board in the Battleship game.
+ * Includes methods for managing ship placement, rendering board visuals, and tracking cell states.
+ */
 public class BoardHandler extends BoardBase implements Serializable {
 
     private static final Color BACKGROUND_COLOR_1 = Color.rgb(127, 205, 255);
@@ -18,29 +22,52 @@ public class BoardHandler extends BoardBase implements Serializable {
     private ArrayList<ArrayList<Integer>> board; // Logical state of the board
     private transient AnchorPane anchorPane; // Transient field for UI, not serialized
 
-
+    /**
+     * Default constructor.
+     * Initializes the board data structure.
+     */
     public BoardHandler() {
         this.board = new ArrayList<>();
     }
 
 
-    // Constructor
+    /**
+     * Constructs a BoardHandler with specified dimensions and an associated AnchorPane for rendering.
+     *
+     * @param planeWidth  Width of the board.
+     * @param planeHeight Height of the board.
+     * @param gridSize    Number of rows and columns.
+     * @param anchorPane  JavaFX AnchorPane for rendering.
+     */
     public BoardHandler(double planeWidth, double planeHeight, int gridSize, AnchorPane anchorPane) {
         super(planeWidth, planeHeight, gridSize, anchorPane);
         this.anchorPane = anchorPane; // Set the AnchorPane for your board
     }
 
+    /**
+     * Updates the board grid's visual representation.
+     *
+     * @param isBoardHidden If true, ship positions are hidden.
+     */
     public void updateGrid(boolean isBoardHidden) {
         clearBoard();
         drawGrid(isBoardHidden);
     }
 
+    /**
+     * Clears all elements from the AnchorPane.
+     */
     private void clearBoard() {
         if (anchorPane != null) {
             anchorPane.getChildren().clear();
         }
     }
 
+    /**
+     * Draws the game board grid based on the logical state.
+     *
+     * @param isBoardHidden If true, ship positions are hidden.
+     */
     private void drawGrid(boolean isBoardHidden) {
         for (int row = 0; row < getGridSize(); row++) {
             for (int col = 0; col < getGridSize(); col++) {
@@ -52,6 +79,14 @@ public class BoardHandler extends BoardBase implements Serializable {
         }
     }
 
+    /**
+     * Creates a visual representation of a cell based on its state.
+     *
+     * @param row           Row of the cell.
+     * @param col           Column of the cell.
+     * @param isBoardHidden If true, ship positions are hidden.
+     * @return Pane representing the cell.
+     */
     private Pane createCell(int row, int col, boolean isBoardHidden) {
         Pane cell = new Pane();
         cell.setPrefSize(getTilesAcross(), getTilesDown());
@@ -78,10 +113,10 @@ public class BoardHandler extends BoardBase implements Serializable {
     }
 
     /**
-     * Convierte un color de JavaFX a formato RGB para poder usarlo en el estilo CSS.
+     * Converts a JavaFX Color to an RGB string for CSS styling.
      *
-     * @param color el color a convertir
-     * @return el color en formato RGB como cadena
+     * @param color The color to convert.
+     * @return The RGB string.
      */
     private String toRgbString(Color color) {
         return "rgb(" + (int) (color.getRed() * 255) + "," +
@@ -108,13 +143,13 @@ public class BoardHandler extends BoardBase implements Serializable {
     }
 
     /**
-     * Verifica si un barco puede colocarse en la posición especificada.
+     * Checks if a ship can be placed at a given position on the board.
      *
-     * @param startX     Coordenada inicial en X.
-     * @param startY     Coordenada inicial en Y.
-     * @param size       Tamaño del barco.
-     * @param horizontal Indica si el barco es horizontal.
-     * @return true si se puede colocar, false en caso contrario.
+     * @param startX     Starting row.
+     * @param startY     Starting column.
+     * @param size       Length of the ship.
+     * @param horizontal True if the ship is horizontal, false if vertical.
+     * @return True if the ship can be placed, false otherwise.
      */
     public boolean canPlaceShip(int startX, int startY, int size, boolean horizontal) {
         for (int i = 0; i < size; i++) {
@@ -129,12 +164,12 @@ public class BoardHandler extends BoardBase implements Serializable {
     }
 
     /**
-     * Coloca un barco en el tablero.
+     * Places a ship on the board.
      *
-     * @param startX     Coordenada inicial en X.
-     * @param startY     Coordenada inicial en Y.
-     * @param size       Tamaño del barco.
-     * @param horizontal Indica si el barco es horizontal.
+     * @param startX     Starting row.
+     * @param startY     Starting column.
+     * @param size       Length of the ship.
+     * @param horizontal True if the ship is horizontal, false if vertical.
      */
     public void placeShip(int startX, int startY, int size, boolean horizontal) {
         for (int i = 0; i < size; i++) {
@@ -145,31 +180,31 @@ public class BoardHandler extends BoardBase implements Serializable {
     }
 
     /**
-     * Marca una celda como impactada.
+     * Marks a cell as hit.
      *
-     * @param row Fila de la celda.
-     * @param col Columna de la celda.
+     * @param row Row of the cell.
+     * @param col Column of the cell.
      */
     public void registerHit(int row, int col) {
         setCell(row, col, 2); // 2 representa un impacto
     }
 
     /**
-     * Marca una celda como un disparo fallido.
+     * Marks a cell as a missed shot.
      *
-     * @param row Fila de la celda.
-     * @param col Columna de la celda.
+     * @param row Row of the cell.
+     * @param col Column of the cell.
      */
     public void registerMiss(int row, int col) {
         setCell(row, col, -1); // -1 representa un fallo
     }
 
     /**
-     * Verifica si una celda ya fue disparada.
+     * Checks if a cell has already been shot.
      *
-     * @param row Fila de la celda.
-     * @param col Columna de la celda.
-     * @return true si ya fue disparada, false en caso contrario.
+     * @param row Row of the cell.
+     * @param col Column of the cell.
+     * @return True if the cell was already shot, false otherwise.
      */
     public boolean isCellAlreadyShot(int row, int col) {
         int cellValue = getCell(row, col);
@@ -193,7 +228,12 @@ public class BoardHandler extends BoardBase implements Serializable {
         updateGrid(false);  // Pass true if you want to hide the board
     }
 
-
+    /**
+     * Creates a visual explosion shape for hit cells.
+     *
+     * @param radius Radius of the explosion.
+     * @return Pane containing the explosion shape.
+     */
     private Pane createExplosionShape(double radius) {
         Polygon explosion = new Polygon();
 
@@ -219,6 +259,14 @@ public class BoardHandler extends BoardBase implements Serializable {
         pane.setStyle("-fx-border-color: black; -fx-background-color: " + toRgbString(BACKGROUND_COLOR_1) + ";");// Ensure Pane size matches the explosion
         return pane;
     }
+
+    /**
+     * Creates a visual "X" shape for missed shots.
+     *
+     * @param width  Width of the cell.
+     * @param height Height of the cell.
+     * @return Pane containing the "X" shape.
+     */
     private Pane createXShape(double width, double height) {
         double x1 = width * 0.2; // Start X for the first line
         double y1 = height * 0.2; // Start Y for the first line
