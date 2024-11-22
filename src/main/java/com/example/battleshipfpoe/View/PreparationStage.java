@@ -7,6 +7,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import java.io.IOException;
 
@@ -30,6 +31,7 @@ public class PreparationStage extends Stage {  // Extendemos Stage para acceder 
         setTitle("BattleShip");  // Establecer el título
         getIcons().add(new Image(String.valueOf(getClass().getResource("/com/example/battleshipfpoe/images/favicon.png"))));  // Agregar ícono
         setResizable(false);  // Hacer que la ventana no sea redimensionable
+        initStyle(StageStyle.UNDECORATED);
         show();  // Mostrar la ventana
     }
 

@@ -5,6 +5,11 @@ import com.example.battleshipfpoe.Model.Boat.Boat;
 import com.example.battleshipfpoe.Model.Boat.BoatVisuals;
 import com.example.battleshipfpoe.View.GameStage;
 import com.example.battleshipfpoe.View.PreparationStage;
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,11 +18,14 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
@@ -28,9 +36,14 @@ public class MenuController implements Initializable {
 
     @FXML
     private AnchorPane BoardPane;
+    @FXML
+    private TextField nickTxtField;
     boolean isSnapped;
     boolean beingDragged;
     final boolean[] initialOrientation = new boolean[1];
+    private boolean isWarningVisible = false;
+    private int unplacedBoats =  10;
+    boolean isThereUnplacedBoats = true;
 
 
     PreparationStage preparationStage;
@@ -39,6 +52,8 @@ public class MenuController implements Initializable {
 
     @FXML
     private Pane BoatPane;
+    @FXML
+    private Label warningLabel;
 
     private boolean isPositionValid;
 
@@ -50,22 +65,12 @@ public class MenuController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeBoard();
         BoatVisuals visuals = new BoatVisuals();
+        warningLabel.setOpacity(0);
 
         BoatVisuals.Caravel caravel = visuals.new Caravel();
         BoatVisuals.Submarine submarine = visuals.new Submarine();
         BoatVisuals.Destroyer destroyer = visuals.new Destroyer();
         BoatVisuals.Aircraft aircraft = visuals.new Aircraft();
-
-/*
-        Boat boat1= new Boat(caravel.CaravelDrawer(),20, -100, 1, true);
-        Boat boat2= new Boat(submarine.SubmarineDrawer(),20, 100, 3, true);
-        Boat boat3 = new Boat(destroyer.DestroyerDrawer(), 20, 200, 2, true);
-        Boat boat4 = new Boat(aircraft.AircraftDrawer(),-160, 0,4, true);
-        addBoatToPane(boat1);
-        addBoatToPane(boat2);
-        addBoatToPane(boat3);
-        addBoatToPane(boat4);*/
-
 
         // Separación entre los barcos
         int horizontalSpacing = 80; // Espaciado horizontal entre barcos
@@ -79,24 +84,24 @@ public class MenuController implements Initializable {
 
         // Creación de Fragatas con espaciado horizontal
         for (int i = 0; i < 4; i++) {
-            fragates.add(new Boat(caravel.CaravelDrawer(),firstBoatXPosition +  horizontalSpacing, firstBoatYPosition, 1, true));
+            fragates.add(new Boat(caravel.CaravelDrawer(),firstBoatXPosition +  horizontalSpacing, firstBoatYPosition, 1, true, 1));
         }
 
         ArrayList<Boat> destroyers = new ArrayList<>();
 
         // Creación de Destroyers con espaciado horizontal
         for (int i = 0; i < 3; i++) {
-            destroyers.add(new Boat(destroyer.DestroyerDrawer(),firstBoatXPosition +  (horizontalSpacing - 10), firstBoatYPosition + verticalSpacing + 10, 2, true));
+            destroyers.add(new Boat(destroyer.DestroyerDrawer(),firstBoatXPosition +  (horizontalSpacing - 10), firstBoatYPosition + verticalSpacing + 10, 2, true, 2));
         }
 
         ArrayList<Boat> submarines = new ArrayList<>();
 
         // Creación de Submarines con espaciado horizontal
         for (int i = 0; i < 2; i++) {
-            submarines.add(new Boat(submarine.SubmarineDrawer(),firstBoatXPosition + (horizontalSpacing -3), firstBoatYPosition + ((2 * verticalSpacing) - 30), 3, true));
+            submarines.add(new Boat(submarine.SubmarineDrawer(),firstBoatXPosition + (horizontalSpacing -3), firstBoatYPosition + ((2 * verticalSpacing) - 30), 3, true, 3));
         }
 
-        Boat aircraftBoat = new Boat(aircraft.AircraftDrawer(), firstBoatXPosition + horizontalSpacing - 220, firstBoatYPosition + 270, 4, true);
+        Boat aircraftBoat = new Boat(aircraft.AircraftDrawer(), firstBoatXPosition + horizontalSpacing - 220, firstBoatYPosition + 270, 4, true, 4);
 
 
         // Añadir Fragatas al panel
@@ -149,6 +154,7 @@ public class MenuController implements Initializable {
         double tileHeight = boardHandler.getTilesDown();
         int col = (int) (newX / tileWidth);
         int row = (int) (newY / tileHeight);
+        int horizontal;
 
         // Ajustar el 'snap' de acuerdo a la orientación del barco
         if (boat.isRotated()) {
@@ -158,6 +164,7 @@ public class MenuController implements Initializable {
 
 
         if (ValidPlacement(boat, col, row)) {
+            unplacedBoats --;
             boat.setWasFirstMove(false);
             isPositionValid = true;
             isSnapped = true;
@@ -208,7 +215,12 @@ public class MenuController implements Initializable {
 
             // Actualizar el estado de la posición
             boat.storePosition(row, col);
-            boatPositionsMap.put(boat, new int[]{row, col});
+            if(boat.isHorizontal()){
+                horizontal = 1;
+            }else{
+                horizontal = 0;
+            }
+            boatPositionsMap.put(boat, new int[]{row, col, horizontal, boat.getType()});
             boat.updateBoatPosition(boardHandler);
 
             if (!BoardPane.getChildren().contains(boat)) {
@@ -349,21 +361,49 @@ public class MenuController implements Initializable {
 
 
     public void handleNextButton(ActionEvent event) {
-        try {
-            // Obtener la instancia única de PreparationStage
+        boolean isEmptyNick = nickTxtField.getText().isEmpty();
 
 
-            // Pasar la lista de barcos al controlador de GameController
-            GameStage.getInstance();
-            GameStage.getInstance().getGameController().newGameState();
-            List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
-            GameStage.getInstance().getGameController().setBoatsList(boatsList);
-            PreparationStage.deleteInstance();
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(unplacedBoats != 0){
+            isThereUnplacedBoats = false;
         }
+
+
+        if(isEmptyNick || isThereUnplacedBoats){
+            isWarningVisible = true;
+        } else{
+            isWarningVisible = false;
+        }
+
+        if (isWarningVisible) {
+
+            // Animate warning label with blinking effect
+            FadeTransition blink = new FadeTransition(Duration.millis(300), warningLabel);
+            blink.setFromValue(0);
+            blink.setToValue(1);
+            blink.setCycleCount(8);
+            blink.setAutoReverse(true);
+            blink.play();
+
+        } else {
+            try {
+                // Obtener la instancia única de PreparationStage
+
+
+                // Pasar la lista de barcos al controlador de GameController
+                GameStage.getInstance();
+                GameStage.getInstance().getGameController().newGameState();
+                List<Boat> boatsList = new ArrayList<>(boatPositionsMap.keySet());
+                GameStage.getInstance().getGameController().setBoatsList(boatsList);
+                PreparationStage.deleteInstance();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
+    public void handleClosePreparationWindow(ActionEvent event) {PreparationStage.deleteInstance();}
 }

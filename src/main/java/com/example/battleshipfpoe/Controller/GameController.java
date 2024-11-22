@@ -64,8 +64,8 @@ public class GameController {
     }
 
     // Place the boat on the grid
-    private void placeShip(int row, int col, int boatLength, boolean isHorizontal) {
-        playerBoardHandler.placeShip(row, col, boatLength, isHorizontal);
+    private void placeShip(int row, int col, int size, boolean horizontal) {
+        playerBoardHandler.placeShip(row, col, size, horizontal);
     }
 
     // Update the grid and setup cell interactions after placing all boats
@@ -264,5 +264,3 @@ public class GameController {
         setupCellInteractions();
     }
 }
-
-
